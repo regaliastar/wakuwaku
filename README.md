@@ -27,7 +27,7 @@ npm install
 npm run start
 ```
 
-4. 重新编译
+4. 监听文件修改，持续编译
 ```bash
 npm run watch
 ```
@@ -42,6 +42,6 @@ npm run watch
   - common 公共组件
     - interface 接口类型统一放在这个目录下
     - component 业务组件
-    - less 全局统一的样式
+    - style 全局统一的样式
     - util 全局的工具类
     - store 存储
