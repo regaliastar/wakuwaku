@@ -42,6 +42,6 @@ npm run watch
   - common 公共组件
     - interface 接口类型统一放在这个目录下
     - component 业务组件
-    - less 全局统一的样式
+    - style 全局统一的样式
     - util 全局的工具类
     - store 存储

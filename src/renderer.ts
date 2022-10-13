@@ -1,4 +1,15 @@
+import { ipcRenderer } from 'electron';
+import Page from '~page/index';
+
 const root = document.getElementById('#root');
-const div = document.createElement('div');
-div.innerHTML = `<p>wwww</p>`;
-root?.appendChild(div);
+
+const initPage = () => {
+  const BannerHtml = Page.Banner.getHtmlNode();
+  root?.appendChild(BannerHtml);
+};
+initPage();
+
+ipcRenderer.on('toRenderer', (event, args) => {
+  console.log(args);
+});
+ipcRenderer.send('toMain', 'ping');

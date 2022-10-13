@@ -5,8 +5,8 @@
   "description": "A mini galgame engine",
   "repository": "https://github.com/regaliastar/wakuwaku",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "webpack --config scripts/webpack.config.js --mode development && webpack --config scripts/webpack.config.render.js --mode development",
+    "watch": "webpack --watch --config scripts/webpack.config.js --mode development && webpack --watch --config scripts/webpack.config.render.js --mode development",
     "lint": "eslint -c .eslintrc.js --ext .ts ./src",
     "fix": "eslint --fix",
     "start": "npm run build && electron ./dist/main.js",
@@ -19,14 +19,17 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
+    "css-loader": "^6.7.1",
     "electron": "^21.0.1",
     "eslint": "^7.32.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.1",
-    "less": "^4.1.3",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
-    "typescript": "^4.8.3"
+    "style-loader": "^3.3.1",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.8.3",
+    "webpack-cli": "^4.10.0"
   }
 }

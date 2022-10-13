@@ -4,18 +4,12 @@
     <meta charset="UTF-8" />
     <title>wakuwaku</title>
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
   </head>
   <body>
     <div id="#root"></div>
-    <!-- You can also require other files to run in this process -->
+    <!-- render file -->
     <script src="./dist/renderer.js"></script>
+    <!-- main process file -->
+    <script src="./dist/main.js"></script>
   </body>
 </html>
