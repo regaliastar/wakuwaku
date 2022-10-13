@@ -8,13 +8,13 @@
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "eslint -c .eslintrc.js --ext .ts ./src",
+    "fix": "eslint --fix",
     "start": "npm run build && electron ./dist/main.js",
     "prepare": "husky install",
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
-    "*.{js,ts,tsx}": "eslint --fix",
-    "*.less": "stylelint --fix --custom-formatter=node_modules/stylelint-formatter-pretty"
+    "*.{js,ts,tsx}": "eslint --fix"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.33.0",
@@ -28,6 +28,5 @@
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "typescript": "^4.8.3"
-  },
-  "dependencies": {}
+  }
 }

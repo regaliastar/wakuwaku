@@ -17,14 +17,6 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
   ],
   rules: {
-    'max-lines': [
-      'error',
-      {
-        max: 350,
-        skipBlankLines: true,
-        skipComments: true,
-      },
-    ],
     'import/no-named-as-default': 'off',
     'import/default': 'off',
     'import/order': 'error',

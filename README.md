@@ -27,7 +27,7 @@ npm install
 npm run start
 ```
 
-4. 重新编译
+4. 监听文件修改，持续编译
 ```bash
 npm run watch
 ```
