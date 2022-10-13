@@ -4,8 +4,8 @@ import Page from '~page/index';
 const root = document.getElementById('#root');
 
 const initPage = () => {
-  const BannerHtml = Page.Banner.getHtmlNode();
-  root?.appendChild(BannerHtml);
+  const BannerHtmlEle = Page.Banner.el;
+  root?.appendChild(BannerHtmlEle);
 };
 initPage();
 

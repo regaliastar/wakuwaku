@@ -1,9 +1,9 @@
 export default class BasicView {
   appEvents: string[];
-  el: string;
+  el: HTMLDivElement;
   constructor() {
     this.appEvents = [];
-    this.el = '';
+    this.el = this.getHtmlNode();
   }
 
   template(): string {

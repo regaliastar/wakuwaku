@@ -1,10 +1,8 @@
 import BasicView from '~component/BasicView';
 
 export default class Banner extends BasicView {
-  el: string;
   constructor() {
     super();
-    this.el = this.template();
   }
 
   template() {
@@ -14,9 +12,5 @@ export default class Banner extends BasicView {
       <button id='save'>存档</button>
       <button id='setting'>设置</button>
     </div>`;
-  }
-
-  getHtmlNode(): HTMLDivElement {
-    return super.getHtmlNode();
   }
 }
