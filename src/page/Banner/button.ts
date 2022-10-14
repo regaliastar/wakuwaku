@@ -3,19 +3,11 @@ import BasicView from '~component/BasicView';
 export default class Button extends BasicView {
   constructor() {
     super();
-    this.initEvent();
   }
 
   template() {
     return `
-    <button>button</button>
+    <a href='#Content'>enter Content</a>
     `;
-  }
-
-  initEvent() {
-    this.addEventListener('click', e => {
-      console.log('点击 button');
-      e.preventDefault();
-    });
   }
 }

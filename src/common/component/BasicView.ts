@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { createElement } from '~util/index';
+
 export default class BasicView {
   _appEvents: { [key: string]: any } = {};
-  _el: HTMLElement;
+  _el: HTMLDivElement;
   _componentName = '';
   _children: { [key: string]: any } = {};
   _father: BasicView | undefined;
@@ -19,18 +21,9 @@ export default class BasicView {
     this._data[name] = value;
   }
 
-  getHtmlNode(): HTMLElement {
-    const node = document.createElement('div');
-    node.innerHTML = this.template();
+  getHtmlNode(): HTMLDivElement {
+    const node = createElement(this.template());
     return node;
-  }
-
-  addEventListener(
-    type: string,
-    fn: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions | undefined,
-  ) {
-    this._el.addEventListener(type, fn, options);
   }
 
   registerChildComponent(name: string, component: BasicView) {
