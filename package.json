@@ -8,7 +8,7 @@
     "build": "webpack --config scripts/webpack.config.js --mode development && webpack --config scripts/webpack.config.render.js --mode development",
     "watch": "webpack --watch --config scripts/webpack.config.render.js --mode development",
     "lint": "eslint -c .eslintrc.js --ext .ts ./src",
-    "fix": "eslint --fix",
+    "fix": "eslint --fix src",
     "start": "npm run build && electron ./dist/main.js",
     "prepare": "husky install",
     "lint-staged": "lint-staged"
@@ -26,7 +26,9 @@
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
+    "node-sass": "^7.0.3",
     "prettier": "^2.7.1",
+    "sass-loader": "^13.1.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.1",
     "typescript": "^4.8.3",
