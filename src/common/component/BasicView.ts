@@ -2,27 +2,28 @@
 import { createElement } from '~util/index';
 
 export default class BasicView {
-  _appEvents: { [key: string]: any } = {};
+  _appEvents: Record<string, any> = {};
   _el: HTMLDivElement;
   _componentName = '';
-  _children: { [key: string]: any } = {};
+  _children: Record<string, BasicView> = {};
   _father: BasicView | undefined;
-  _data: { [key: string]: any } = {}; // 组件数据通信
+  _data: Record<string, string | unknown> = {}; // 组件数据通信
 
-  constructor() {
-    this._el = this.getHtmlNode();
+  constructor(_args?: any) {
+    this._el = this.getHtmlNode(_args);
   }
 
-  template(): string {
+  // eslint-disable-next-line
+  template(_args?: any): string {
     return '';
   }
 
-  setData(name: string, value: unknown) {
+  setData(name: string, value: Record<string, unknown> | string | unknown) {
     this._data[name] = value;
   }
 
-  getHtmlNode(): HTMLDivElement {
-    const node = createElement(this.template());
+  getHtmlNode(_args?: any): HTMLDivElement {
+    const node = createElement(this.template(_args));
     return node;
   }
 
@@ -61,6 +62,7 @@ export default class BasicView {
     }
   }
 
+  // todo
   emitComponentEvent(event: string, componentName: string, ...data: any) {
     const delegateEventSplitter = /^(\S+)\s*(\S+)$/;
     Object.keys(this._appEvents).forEach(key => {
@@ -76,6 +78,7 @@ export default class BasicView {
     });
   }
 
+  // todo
   remove() {
     return null;
   }

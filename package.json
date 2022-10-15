@@ -17,6 +17,7 @@
     "*.{js,ts,tsx}": "eslint --fix"
   },
   "devDependencies": {
+    "@types/glob": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "css-loader": "^6.7.1",
@@ -24,6 +25,7 @@
     "eslint": "^7.32.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "glob": "^8.0.3",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "node-sass": "^7.0.3",

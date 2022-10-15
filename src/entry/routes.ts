@@ -1,3 +1,4 @@
+import glob from 'glob';
 import { RoutePath } from '~interface/routes';
 import { getHash } from '~util/index';
 
@@ -11,6 +12,8 @@ class Router {
   }
 
   init() {
+    this.registerAuto();
+    location.hash = '';
     window.addEventListener('hashchange', () => {
       const hash = getHash();
       const path = this._pagePaths.find(v => v.path === hash);
@@ -18,7 +21,7 @@ class Router {
         this.refresh(path?.component);
         return;
       }
-      throw new Error(`找不到路径: ${hash}, ${JSON.stringify(this._pagePaths)}`);
+      throw new Error(`找不到路径: ${hash}, 已注册页面：${JSON.stringify(this._pagePaths)}`);
     });
   }
 
@@ -26,7 +29,23 @@ class Router {
     this._root = root;
   }
 
+  registerAuto() {
+    glob.sync(`src/page/*`).forEach(async filepath => {
+      const regResult = new RegExp('/([a-zA-Z_]*$)').exec(filepath);
+      /* eslint-disable @typescript-eslint/prefer-optional-chain */
+      const compName = regResult && regResult[1];
+      if (compName) {
+        const component = await import(`~page/${compName}`);
+        this.registerPage(compName as unknown as string, new component.default()._el);
+      }
+    });
+  }
+
   registerPage(path: string, component: HTMLElement) {
+    if (this._pagePaths.find(_path => _path.path === path) !== undefined) {
+      console.error(`存在已注册页面 ${path}`);
+      return;
+    }
     this._pagePaths.push({
       path,
       component,

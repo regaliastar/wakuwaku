@@ -1,13 +1,21 @@
 import BasicView from '~component/BasicView';
 
+interface btnParams {
+  id: string;
+  text: string;
+  href: string;
+}
+
 export default class Button extends BasicView {
-  constructor() {
-    super();
+  constructor(options: btnParams) {
+    super(options);
   }
 
-  template() {
+  template(options: btnParams) {
     return `
-    <a href='#Content'>enter Content</a>
+    <div>
+      <a href='${options.href}' id='${options.id}'>${options.text}</a>
+    </div>
     `;
   }
 }

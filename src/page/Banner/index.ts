@@ -13,15 +13,20 @@ export default class Banner extends BasicView {
   template() {
     return `
     <div class='Banner'>
-      <a href='#'>reset hash</a>
     </div>
     `;
   }
 
   getHtmlNode(): HTMLDivElement {
-    const btn1 = this.registerChildComponent('btn1', new Button());
+    const btnGroup = [
+      this.registerChildComponent('newGame', new Button({ id: 'newGame', text: '开始游戏', href: '#Content' })),
+      this.registerChildComponent('save', new Button({ id: 'save', text: '保存', href: '#Save' })),
+      this.registerChildComponent('settings', new Button({ id: 'settings', text: '设置', href: '#Settings' })),
+    ];
     const node = createElement(this.template());
-    node?.appendChild(btn1._el);
+    btnGroup.forEach(btn => {
+      node?.appendChild(btn._el);
+    });
     return node;
   }
 
