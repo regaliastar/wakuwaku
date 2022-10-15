@@ -1,22 +1,36 @@
+import Button from './button';
 import BasicView from '~component/BasicView';
+import { createElement } from '~util/index';
+import './index.scss';
 
 export default class Banner extends BasicView {
-  el: string;
   constructor() {
     super();
-    this.el = this.template();
+    this._el = this.getHtmlNode();
+    this.initEvent();
   }
 
   template() {
-    return `<div class='Banner'>
-      <p>图片</p>
-      <button id='newGame'>新游戏</button>
-      <button id='save'>存档</button>
-      <button id='setting'>设置</button>
-    </div>`;
+    return `
+    <div class='Banner'>
+    </div>
+    `;
   }
 
   getHtmlNode(): HTMLDivElement {
-    return super.getHtmlNode();
+    const btnGroup = [
+      this.registerChildComponent('newGame', new Button({ id: 'newGame', text: '开始游戏', href: '#Content' })),
+      this.registerChildComponent('save', new Button({ id: 'save', text: '保存', href: '#Save' })),
+      this.registerChildComponent('settings', new Button({ id: 'settings', text: '设置', href: '#Settings' })),
+    ];
+    const node = createElement(this.template());
+    btnGroup.forEach(btn => {
+      node?.appendChild(btn._el);
+    });
+    return node;
+  }
+
+  initEvent() {
+    // this._el.addEventListener('click', handleHrefEvent);
   }
 }
