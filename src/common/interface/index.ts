@@ -1,4 +1,4 @@
 export interface RoutePath {
   path: string;
-  component: HTMLElement;
+  component: string;
 }

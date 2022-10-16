@@ -4,7 +4,7 @@ import Page from '~page/index';
 
 const root = document.getElementById('#root');
 routes.registerRoot(root);
-routes.registerPage('/', Page.Banner._el);
+routes.registerPage('/', 'Banner');
 
 const initPage = () => {
   const BannerHtmlEle = Page.Banner._el;

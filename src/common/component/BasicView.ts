@@ -1,8 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createElement } from '~util/index';
 
+enum EventTypeEnum {
+  'onMount',
+}
+type EventType = keyof typeof EventTypeEnum;
+
 export default class BasicView {
-  _appEvents: Record<string, any> = {};
+  _appEvents: Record<EventType, any> = {
+    onMount: undefined,
+  };
   _el: HTMLDivElement;
   _componentName = '';
   _children: Record<string, BasicView> = {};
@@ -10,7 +17,7 @@ export default class BasicView {
   _data: Record<string, string | unknown> = {}; // 组件数据通信
 
   constructor(_args?: any) {
-    this._el = this.getHtmlNode(_args);
+    this._el = this.render(_args);
   }
 
   // eslint-disable-next-line
@@ -22,9 +29,54 @@ export default class BasicView {
     this._data[name] = value;
   }
 
-  getHtmlNode(_args?: any): HTMLDivElement {
+  render(_args?: any): HTMLDivElement {
     const node = createElement(this.template(_args));
     return node;
+  }
+
+  registerEvent(type: EventType, fn: any) {
+    if (this._appEvents[type]) {
+      throw new Error(`存在已注册事件 ${type}`);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const _this = this;
+    const currying = (fn: any) => {
+      return () => {
+        fn.call(_this);
+      };
+    };
+    this._appEvents[type] = currying(fn);
+  }
+
+  // 与父组件通信，控制反转思路，子组件抛出方法让父组件执行，而不需要关注父组件具体方法实现。
+  triggerFatherEvent(eventType: EventType, componentName?: string) {
+    if (this._father) {
+      if (this._componentName === componentName && this._appEvents[eventType]) {
+        this._appEvents[eventType]();
+        return;
+      }
+      this._father.triggerFatherEvent(eventType, componentName);
+    }
+  }
+
+  // 触发子组件和自身事件
+  triggerChildrenEvent(eventType: EventType, componentName?: string) {
+    if (componentName) {
+      if (this._componentName === componentName && this._appEvents[eventType]) {
+        this._appEvents[eventType]();
+        return;
+      }
+    } else {
+      // 没有传递 componentName，全触发
+      if (this._appEvents[eventType]) {
+        this._appEvents[eventType]();
+      }
+    }
+    if (this._children) {
+      Object.keys(this._children).forEach((key: string) => {
+        this._children[key].triggerChildrenEvent(eventType, componentName);
+      });
+    }
   }
 
   registerChildComponent(name: string, component: BasicView) {
@@ -50,36 +102,46 @@ export default class BasicView {
     }
   }
 
+  // 更新自身节点
+  updateComponent(component: HTMLElement) {
+    if (this._father) {
+      this._father._el.insertBefore(component, this._el);
+      this.remove();
+      return;
+    }
+    throw new Error('不能更新不存在父节点的节点');
+  }
+
   // 父子通信，子组件可以调用父组件的方法
   // 控制反转思路，子组件抛出方法让父组件执行，而不需要关注父组件具体方法实现。
-  trigger(eventName: string, ...data: any) {
-    const parent = this._father;
-    if (parent) {
-      const componentName = this._componentName;
-      parent.emitComponentEvent(eventName, componentName, ...data);
-      // 冒泡
-      parent.trigger(eventName, ...data);
-    }
-  }
+  // trigger(eventName: string, ...data: any) {
+  //   if (this._father) {
+  //     // const componentName = this._componentName;
+  //     // this._father.emitComponentEvent(eventName, componentName, ...data);
+  //     // 冒泡
+  //     this._father.trigger(eventName, ...data);
+  //   }
+  // }
 
   // todo
-  emitComponentEvent(event: string, componentName: string, ...data: any) {
-    const delegateEventSplitter = /^(\S+)\s*(\S+)$/;
-    Object.keys(this._appEvents).forEach(key => {
-      const funcName = this._appEvents[key];
-      const match = key.match(delegateEventSplitter);
-      const eventName = match ? match[1] : null;
-      const selector = match ? match[2] : null;
-      if (selector === componentName && event === eventName) {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const fn = this[funcName as keyof BasicView] as Function;
-        fn?.(...data);
-      }
-    });
-  }
+  // emitComponentEvent(event: string, componentName: string, ...data: any) {
+  //   const delegateEventSplitter = /^(\S+)\s*(\S+)$/;
+  //   Object.keys(this._appEvents).forEach(key => {
+  //     const funcName = this._appEvents[key];
+  //     const match = key.match(delegateEventSplitter);
+  //     const eventName = match ? match[1] : null;
+  //     const selector = match ? match[2] : null;
+  //     if (selector === componentName && event === eventName) {
+  //       // eslint-disable-next-line @typescript-eslint/ban-types
+  //       const fn = this[funcName as keyof BasicView] as Function;
+  //       fn?.(...data);
+  //     }
+  //   });
+  // }
 
-  // todo
   remove() {
-    return null;
+    if (this._father) {
+      this._father._el.removeChild(this._el);
+    }
   }
 }
