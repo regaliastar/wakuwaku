@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 export interface RoutePath {
   path: string;
   component: string;
@@ -5,9 +6,10 @@ export interface RoutePath {
 
 export interface BasicViewInterface {
   _el: HTMLDivElement;
-  // eslint-disable-next-line @typescript-eslint/ban-types
   render: Function;
 }
+
+export type EventFnParams = string | string[] | CharactarSay;
 
 export interface CharactarSay {
   name: string;

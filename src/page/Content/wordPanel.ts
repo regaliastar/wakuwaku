@@ -1,5 +1,6 @@
 import BasicView from '~component/BasicView';
 import { createElement } from '~util/index';
+import Container from '~util/Container';
 import './wordPanel.scss';
 
 interface wordPrams {
@@ -10,8 +11,9 @@ const typeText = async () => {
   const container = document.querySelector('#textInPanel');
   const nodes = container?.querySelectorAll('span');
   function core(step: number) {
-    if (shouldTyping === false) return;
+    if (Container.getReadyState('typing') === true) return;
     if (nodes?.length && step >= nodes.length) {
+      Container.setReadyState('typing', true);
       return;
     }
     setTimeout(() => {
@@ -24,22 +26,20 @@ const typeText = async () => {
   core(0);
 };
 
-let shouldTyping = true;
-
 export default class wordPanel extends BasicView {
   constructor(options: wordPrams) {
     super(options);
-    this._el.addEventListener('click', e => {
-      shouldTyping = false;
+    this.registerEvent('onMount', () => {
+      Container.setReadyState('typing', false);
+      typeText();
+    });
+    this.registerEvent('stopTyping', () => {
       const container = document.querySelector('#textInPanel');
       const nodes = container?.querySelectorAll('span');
       nodes?.forEach(n => {
         n.className = 'show';
       });
-      e.preventDefault();
-    });
-    this.registerEvent('onMount', () => {
-      typeText();
+      Container.setReadyState('typing', true);
     });
   }
 

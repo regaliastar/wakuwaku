@@ -1,16 +1,23 @@
 import wordPanel from './wordPanel';
 import BasicView from '~component/BasicView';
+import { EventFnParams } from '~interface/index';
 import { createElement } from '~util/index';
+import Container from '~util/Container';
 import './index.scss';
 
 export default class Content extends BasicView {
   constructor() {
     super();
-    this.registerEvent('onMount', () => {
-      this.setBg('1');
-    });
     this._el.addEventListener('click', e => {
+      Container.execNextEvent(this);
+      this.triggerChildrenEvent('stopTyping');
       e.preventDefault();
+    });
+    this.registerEvent('onMount', () => {
+      Container.execNextEvent(this);
+    });
+    this.registerEvent('bgChange', (params: EventFnParams) => {
+      this.setBg(params as string);
     });
   }
 
@@ -31,7 +38,7 @@ export default class Content extends BasicView {
   setBg(bgName: string) {
     const bgNode = document.getElementById('bg');
     if (bgNode) {
-      bgNode.style.backgroundImage = `url(statics/img/${bgName}.jpg)`;
+      bgNode.style.backgroundImage = `url(statics/img/${bgName})`;
     }
   }
 

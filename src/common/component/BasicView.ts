@@ -1,15 +1,32 @@
+/* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BasicViewInterface } from '~interface/index';
+import { BasicViewInterface, EventFnParams } from '~interface/index';
 import { createElement } from '~util/index';
 
 enum EventTypeEnum {
   'onMount', // 页面加载完毕
+  'bgChange',
+  'say',
+  'musicChange',
+  'addCharactor',
+  'stopTyping',
 }
 type EventType = keyof typeof EventTypeEnum;
+
+export interface PageEventCompParams {
+  componentName?: string;
+  once?: boolean;
+  params: EventFnParams;
+}
 
 export default class BasicView implements BasicViewInterface {
   _appEvents: Record<EventType, any> = {
     onMount: undefined,
+    bgChange: undefined,
+    say: undefined,
+    musicChange: undefined,
+    addCharactor: undefined,
+    stopTyping: undefined,
   };
   _el: HTMLDivElement;
   _componentName = '';
@@ -35,47 +52,50 @@ export default class BasicView implements BasicViewInterface {
     return node;
   }
 
-  registerEvent(type: EventType, fn: any) {
+  registerEvent(type: EventType, fn: (params: EventFnParams) => void) {
     if (this._appEvents[type]) {
       throw new Error(`存在已注册事件 ${type}`);
     }
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
-    const currying = (fn: any) => {
-      return () => {
-        fn.call(_this);
+    const currying = (fn: Function) => {
+      return (params: EventFnParams) => {
+        fn.call(_this, params);
       };
     };
     this._appEvents[type] = currying(fn);
   }
 
   // 与父组件通信，控制反转，子组件抛出方法让父组件执行，而不需要关注父组件具体方法实现。
-  triggerFatherEvent(eventType: EventType, componentName?: string) {
+  triggerFatherEvent(eventType: EventType, params?: PageEventCompParams) {
     if (this._father) {
-      if (this._father._componentName === componentName && this._father._appEvents[eventType]) {
-        this._father._appEvents[eventType]();
+      if (this._father._componentName === params?.componentName && this._father._appEvents[eventType]) {
+        this._father._appEvents[eventType](params?.params);
         return;
       }
-      this._father.triggerFatherEvent(eventType, componentName);
+      this._father.triggerFatherEvent(eventType, params);
     }
   }
 
   // 触发子组件和自身事件
-  triggerChildrenEvent(eventType: EventType, componentName?: string) {
-    if (componentName) {
-      if (this._componentName === componentName && this._appEvents[eventType]) {
-        this._appEvents[eventType]();
+  triggerChildrenEvent(eventType: EventType, params?: PageEventCompParams) {
+    if (params?.componentName) {
+      if (this._componentName === params?.componentName && this._appEvents[eventType]) {
+        this._appEvents[eventType](params?.params);
         return;
       }
     } else {
       // 没有传递 componentName，全触发
       if (this._appEvents[eventType]) {
-        this._appEvents[eventType]();
+        this._appEvents[eventType](params?.params);
+        if (params?.once) {
+          return;
+        }
       }
     }
     if (this._children) {
       Object.keys(this._children).forEach((key: string) => {
-        this._children[key].triggerChildrenEvent(eventType, componentName);
+        this._children[key].triggerChildrenEvent(eventType, params);
       });
     }
   }
@@ -112,33 +132,6 @@ export default class BasicView implements BasicViewInterface {
     }
     throw new Error('不能更新不存在父节点的节点');
   }
-
-  // 父子通信，子组件可以调用父组件的方法
-  // 控制反转思路，子组件抛出方法让父组件执行，而不需要关注父组件具体方法实现。
-  // trigger(eventName: string, ...data: any) {
-  //   if (this._father) {
-  //     // const componentName = this._componentName;
-  //     // this._father.emitComponentEvent(eventName, componentName, ...data);
-  //     // 冒泡
-  //     this._father.trigger(eventName, ...data);
-  //   }
-  // }
-
-  // todo
-  // emitComponentEvent(event: string, componentName: string, ...data: any) {
-  //   const delegateEventSplitter = /^(\S+)\s*(\S+)$/;
-  //   Object.keys(this._appEvents).forEach(key => {
-  //     const funcName = this._appEvents[key];
-  //     const match = key.match(delegateEventSplitter);
-  //     const eventName = match ? match[1] : null;
-  //     const selector = match ? match[2] : null;
-  //     if (selector === componentName && event === eventName) {
-  //       // eslint-disable-next-line @typescript-eslint/ban-types
-  //       const fn = this[funcName as keyof BasicView] as Function;
-  //       fn?.(...data);
-  //     }
-  //   });
-  // }
 
   remove() {
     if (this._father) {
