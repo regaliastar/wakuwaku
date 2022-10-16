@@ -1,7 +1,9 @@
 import { ipcRenderer } from 'electron';
 import routes from './entry/routes';
+import main from './entry/main';
 import Page from '~page/index';
 
+main();
 const root = document.getElementById('#root');
 routes.registerRoot(root);
 routes.registerPage('/', 'Banner');

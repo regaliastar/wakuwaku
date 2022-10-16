@@ -2,11 +2,11 @@ import glob from 'glob';
 import { RoutePath } from '~interface/index';
 import { getHash } from '~util/index';
 import BasicView from '~component/BasicView';
+import Container from '~util/Container';
 
 // 支持 hashHistory
 class Router {
   _root!: HTMLElement | null;
-  _history: Array<string> = [];
   _pagePaths: Array<RoutePath> = []; // 保存注册过的页面路由
   constructor() {
     this.init();
@@ -20,10 +20,11 @@ class Router {
       const path = this._pagePaths.find(v => v.path === hash);
       if (path) {
         const component = await import(`~page/${path.component}`);
-        this.refresh(new component.default());
+        Container.bindPage(new component.default());
+        this.refresh(Container._currentPage);
         return;
       }
-      throw new Error(`找不到路径: ${hash}, 已注册页面：${JSON.stringify(this._pagePaths)}`);
+      throw new Error(`找不到路径: ${hash}, 已注册路由：${JSON.stringify(this._pagePaths)}`);
     });
   }
 
@@ -50,8 +51,8 @@ class Router {
   }
 
   // 重绘页面
-  refresh(component: BasicView) {
-    if (this._root === null) {
+  refresh(component: BasicView | undefined) {
+    if (this._root === null || component === undefined) {
       return;
     }
     while (this._root.hasChildNodes()) {
@@ -62,7 +63,6 @@ class Router {
     this._root.appendChild(component._el);
     // 触发事件
     component.triggerChildrenEvent('onMount');
-    // component.onPageMounted();
   }
 }
 

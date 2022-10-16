@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { BasicViewInterface } from '~interface/index';
 import { createElement } from '~util/index';
 
 enum EventTypeEnum {
-  'onMount',
+  'onMount', // 页面加载完毕
 }
 type EventType = keyof typeof EventTypeEnum;
 
-export default class BasicView {
+export default class BasicView implements BasicViewInterface {
   _appEvents: Record<EventType, any> = {
     onMount: undefined,
   };
@@ -48,11 +49,11 @@ export default class BasicView {
     this._appEvents[type] = currying(fn);
   }
 
-  // 与父组件通信，控制反转思路，子组件抛出方法让父组件执行，而不需要关注父组件具体方法实现。
+  // 与父组件通信，控制反转，子组件抛出方法让父组件执行，而不需要关注父组件具体方法实现。
   triggerFatherEvent(eventType: EventType, componentName?: string) {
     if (this._father) {
-      if (this._componentName === componentName && this._appEvents[eventType]) {
-        this._appEvents[eventType]();
+      if (this._father._componentName === componentName && this._father._appEvents[eventType]) {
+        this._father._appEvents[eventType]();
         return;
       }
       this._father.triggerFatherEvent(eventType, componentName);

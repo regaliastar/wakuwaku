@@ -41,7 +41,6 @@ export default class wordPanel extends BasicView {
     this.registerEvent('onMount', () => {
       typeText();
     });
-    // this._registerFnOnPageMounted = typeText; // 当 onPageMounted 时，需要代理给父节点执行的函数
   }
 
   template(options: wordPrams) {
