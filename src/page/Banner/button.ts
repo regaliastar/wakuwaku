@@ -1,4 +1,5 @@
 import BasicView from '~component/BasicView';
+import './button.scss';
 
 interface btnParams {
   id: string;
@@ -13,7 +14,7 @@ export default class Button extends BasicView {
 
   template(options: btnParams) {
     return `
-    <div>
+    <div class='button'>
       <a href='${options.href}' id='${options.id}'>${options.text}</a>
     </div>
     `;

@@ -1,0 +1,33 @@
+.wordPanel {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    border: 1px solid black;
+    .text {
+      word-break:break-all;
+      height: 20vh;
+      padding: 10px;
+      font-size: 22px;
+    }
+  
+    .fadeout {
+      @keyframes fade-in {
+        0% {
+          opacity: 0;
+        }
+        100%  {
+          opacity: 1;
+        }
+      }
+      $fadeInDur: 0ms;
+      opacity: 0;
+      animation: fade-in #{$fadeInDur} ease-out both  1;
+    }
+  
+    .show {
+      opacity: 1 !important;
+    }
+  }
+  

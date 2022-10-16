@@ -1,10 +1,12 @@
 import { ipcRenderer } from 'electron';
 import routes from './entry/routes';
+import main from './entry/main';
 import Page from '~page/index';
 
+main();
 const root = document.getElementById('#root');
 routes.registerRoot(root);
-routes.registerPage('/', Page.Banner._el);
+routes.registerPage('/', 'Banner');
 
 const initPage = () => {
   const BannerHtmlEle = Page.Banner._el;
