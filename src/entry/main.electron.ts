@@ -14,6 +14,7 @@ function createWindow() {
     },
   });
 
+  // 这里的路径是打包后的路径
   mainWindow.loadFile(path.join(__dirname, '../', 'index.html'));
 
   mainWindow.webContents.openDevTools();

@@ -1,7 +1,7 @@
+import * as fs from 'fs';
 import BasicView from '~component/BasicView';
 import { SecenEvent, ReadyStateType } from '~interface/index';
 import { Scanner, Parser } from '~util/Parser';
-import { fsLoader } from '~util/index';
 
 // IoC 容器
 class Container {
@@ -29,7 +29,10 @@ class Container {
   }
 
   loadDrama(filepath: string) {
-    const text = fsLoader(filepath);
+    if (!fs.existsSync(filepath)) {
+      throw new Error(`${filepath} 文件不存在`);
+    }
+    const text = fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' });
     const tokens = Scanner(text);
     const events = Parser(tokens);
     this.bindSecenEvents(events);

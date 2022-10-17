@@ -3,7 +3,6 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    // main: path.resolve(__dirname, '..', './src', 'main.ts'),
     main: path.resolve(__dirname, '..', './src', './entry', 'main.electron.ts'),
   },
   output: {
