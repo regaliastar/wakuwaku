@@ -3,14 +3,12 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    preload: path.resolve(__dirname, '..', './src', 'preload.ts'),
-    renderer: path.resolve(__dirname, '..', './src', 'renderer.ts'),
+    renderer: path.resolve(__dirname, '..', './src', 'entry', 'main.ts'),
   },
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', './dist'),
   },
-  // 内置了 electron 支持
   target: 'electron-renderer',
   resolve: {
     extensions: ['.ts', '.js'],

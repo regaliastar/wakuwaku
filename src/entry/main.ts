@@ -1,14 +1,18 @@
-import { fsLoader } from '~util/index';
-import { Scanner, Parser } from '~util/Parser';
-
+import routes from './routes';
 import Container from '~util/Container';
+import Page from '~page/index';
 
 const main = () => {
-  const text = fsLoader('drama/test.txt');
-  const tokens = Scanner(text);
-  const events = Parser(tokens);
-  console.log('events', events);
-  Container.bindSecenEvents(events);
+  /** load Container */
+  Container.loadDrama('drama/test.txt');
+
+  /** load Page */
+  location.hash = '';
+  const root = document.getElementById('#root');
+  routes.registerRoot(root);
+  routes.registerPage('/', 'Banner');
+  const BannerHtmlEle = Page.Banner._el;
+  root?.appendChild(BannerHtmlEle);
 };
 
-export default main;
+main();

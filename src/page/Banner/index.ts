@@ -23,7 +23,6 @@ export default class Banner extends BasicView {
       this.registerChildComponent('newGame', new Button({ id: 'newGame', text: '开始游戏', href: '#Content' })),
       this.registerChildComponent('save', new Button({ id: 'save', text: '保存', href: '#Save' })),
       this.registerChildComponent('settings', new Button({ id: 'settings', text: '设置', href: '#Settings' })),
-      this.registerChildComponent('test', new Button({ id: 'test', text: '测试使用', href: '#Test' })),
     ];
     const node = createElement(this.template());
     btnGroup.forEach(btn => {
