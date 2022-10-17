@@ -1,19 +1,20 @@
 import BasicView from '~component/BasicView';
-import { createElement } from '~util/index';
 import Container from '~util/Container';
 import './wordPanel.scss';
+import { EventFnParams, ConstructorParams } from '~interface/index';
 
-interface wordPrams {
+interface wordParams extends ConstructorParams {
   text: string;
 }
 
-const typeText = async () => {
+const typeText = () => {
   const container = document.querySelector('#textInPanel');
   const nodes = container?.querySelectorAll('span');
+  Container.setReadyState('typingDone', false);
   function core(step: number) {
-    if (Container.getReadyState('typing') === true) return;
+    if (Container.getReadyState('typingDone') === true) return;
     if (nodes?.length && step >= nodes.length) {
-      Container.setReadyState('typing', true);
+      Container.setReadyState('typingDone', true);
       return;
     }
     setTimeout(() => {
@@ -26,11 +27,19 @@ const typeText = async () => {
   core(0);
 };
 
+const getWordGroupBySpan = (text: string): string => {
+  return text
+    .split('')
+    .map(ch => {
+      return `<span style = 'opacity: 0'>${ch}</span>`;
+    })
+    .join('');
+};
+
 export default class wordPanel extends BasicView {
-  constructor(options: wordPrams) {
+  constructor(options: wordParams) {
     super(options);
     this.registerEvent('onMount', () => {
-      Container.setReadyState('typing', false);
       typeText();
     });
     this.registerEvent('stopTyping', () => {
@@ -39,27 +48,33 @@ export default class wordPanel extends BasicView {
       nodes?.forEach(n => {
         n.className = 'show';
       });
-      Container.setReadyState('typing', true);
+      Container.setReadyState('typingDone', true);
+    });
+    this.registerEvent('say', (result: EventFnParams) => {
+      if (result?.['text']) {
+        this.updataText(result?.text);
+        typeText();
+      }
     });
   }
 
-  template(options: wordPrams) {
-    const txtGroupBySpan = options.text
-      .split('')
-      .map(ch => {
-        return `<span style = 'opacity: 0'>${ch}</span>`;
-      })
-      .join('');
+  template(options: wordParams) {
+    const txtGroupBySpan = getWordGroupBySpan(options.text);
     return `
     <div class='wordPanel'>
       <div class='text' id='textInPanel'>
-        ${txtGroupBySpan}
+        <div id='textGroup'>${txtGroupBySpan}</div>
       </div>
     </div>
     `;
   }
 
-  setText(options: wordPrams) {
-    this.updateComponent(createElement(this.template(options)));
+  // todo: MVVM 实现
+  updataText(text: string | undefined) {
+    const textPanel = document.getElementById('textInPanel');
+    if (text === undefined || !textPanel) {
+      return;
+    }
+    textPanel.innerHTML = `<div id='textGroup'>${getWordGroupBySpan(text)}</div>`;
   }
 }

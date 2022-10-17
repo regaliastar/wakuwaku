@@ -1,10 +1,12 @@
 import BasicView from '~component/BasicView';
-import { SecenEvent } from '~interface/index';
+import { SecenEvent, ReadyStateType } from '~interface/index';
+import { Scanner, Parser } from '~util/Parser';
+import { fsLoader } from '~util/index';
 
 // IoC 容器
 class Container {
   _currentPage: BasicView | undefined;
-  _readyState: Map<string, boolean>; // 当所有状态都为 true 时，才能执行下一个指令
+  _readyState: Map<ReadyStateType, boolean>; // 当所有状态都为 true 时，才能执行下一个指令
   _secenEvents: SecenEvent[] = [];
   _curEventIndex: number; // 当前触发场景事件
   constructor() {
@@ -26,12 +28,20 @@ class Container {
     this._currentPage = component;
   }
 
+  loadDrama(filepath: string) {
+    const text = fsLoader(filepath);
+    const tokens = Scanner(text);
+    const events = Parser(tokens);
+    this.bindSecenEvents(events);
+  }
+
   bindSecenEvents(secenEvents: SecenEvent[]) {
     this._secenEvents = secenEvents;
   }
 
   // 触发事件后由触发者执行自己注册的函数，Container 不关注具体实现细节
   execNextEvent(node: BasicView): boolean {
+    console.log('execNextEvent', this.isSecenReady(), this._secenEvents[this._curEventIndex]);
     if (this._curEventIndex >= this._secenEvents.length) {
       this.gameOver();
       return false;
@@ -45,11 +55,11 @@ class Container {
     return true;
   }
 
-  setReadyState(key: string, value: boolean) {
+  setReadyState(key: ReadyStateType, value: boolean) {
     this._readyState.set(key, value);
   }
 
-  getReadyState(key: string): boolean {
+  getReadyState(key: ReadyStateType): boolean {
     const state = this._readyState.get(key);
     if (state === undefined) {
       throw new Error(`找不到元素 ${state}`);

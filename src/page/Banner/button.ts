@@ -1,7 +1,8 @@
 import BasicView from '~component/BasicView';
+import { ConstructorParams } from '~interface/index';
 import './button.scss';
 
-interface btnParams {
+interface btnParams extends ConstructorParams {
   id: string;
   text: string;
   href: string;

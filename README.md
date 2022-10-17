@@ -19,7 +19,7 @@ npm config set registry https://registry.npm.taobao.org
 ```bash
 git clone https://github.com/regaliastar/wakuwaku.git
 cd wakuwaku
-npm install
+npm i
 ```
 
 3. 运行
