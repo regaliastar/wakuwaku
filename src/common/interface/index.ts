@@ -54,10 +54,12 @@ export interface ScriptScene {
 enum tokenType {
   'text',
   'bg',
-  'music',
+  'music', // bgm
+  'voice', // 音效
   'addCharactorName',
   'sayName',
-  'sperator',
+  'sperator', // 分割符
+  'aside', // 旁白
 }
 
 export interface Token {
@@ -68,9 +70,12 @@ export interface Token {
 // 定义场景事件类型
 enum SecenEventType {
   'say',
+  'aside',
   'musicChange',
   'bgChange',
-  'addCharactor',
+  'charactorChange',
+  'voiceChange',
+  'sperateEvent', // 分割事件，要求玩家交互（如点击屏幕）才能继续触发下个场景。该事件对外部透明
 }
 
 export interface SecenEvent {

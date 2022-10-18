@@ -56,6 +56,10 @@ export default class wordPanel extends BasicView {
         typeText();
       }
     });
+    this.registerEvent('aside', (result: EventFnParams) => {
+      this.updataText(result);
+      typeText();
+    });
   }
 
   template(options: wordParams) {

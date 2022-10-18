@@ -1,5 +1,9 @@
 import { Token, SecenEvent, CharactarSay } from '~interface/index';
 
+/**
+ * 词法分析，分割词素，生成 Token 串
+ * 要求剧本为 LL(1) 文法，First 集合交集必须为空
+ */
 const Scanner = (text: string): Array<Token> => {
   const recognizeBg = (line: string): Token | false => {
     if (line.substring(0, 3) === '>bg') {
@@ -23,6 +27,20 @@ const Scanner = (text: string): Array<Token> => {
       }
       return {
         type: 'music',
+        value: arr[1].trim(),
+      };
+    }
+    return false;
+  };
+
+  const recognizeVoice = (line: string): Token | false => {
+    if (line.substring(0, 6) === '>voice') {
+      const arr = line.includes(':') ? line.split(':') : line.split('：');
+      if (arr.length !== 2) {
+        return false;
+      }
+      return {
+        type: 'voice',
         value: arr[1].trim(),
       };
     }
@@ -65,49 +83,60 @@ const Scanner = (text: string): Array<Token> => {
 
   // 适配 windows txt 文本以 \r\n 结尾
   const lines = text.replace(/\r/g, '').trim().split('\n');
-  let token: Array<Token> = [];
+  let tokens: Array<Token> = [];
   lines.forEach(_line => {
     const line = _line.trim();
-    let isSuccess = false;
     // filter
     if (line === '') return;
     if (line[0] === '/' && line[1] === '/') return;
 
     if (line[0] === '>') {
-      const value = recognizeBg(line) || recognizeMusic(line);
-      if (value) {
-        token.push(value);
-        isSuccess = true;
+      const res = recognizeBg(line) || recognizeMusic(line) || recognizeVoice(line);
+      if (res) {
+        tokens.push(res);
+        return;
       }
     }
     if (line[0] === '+') {
       const chs = recognizeAddCharactor(line);
       if (chs !== false) {
-        token = token.concat(chs);
-        isSuccess = true;
+        tokens = tokens.concat(chs);
+        return;
       }
     }
-    if (!isSuccess) {
-      const res = recognizeSay(line);
-      if (res !== false) {
-        token = token.concat(res);
-        isSuccess = true;
-      }
+    if (line[0] === '-') {
+      tokens.push({
+        type: 'sperator',
+        value: '',
+      });
+      return;
     }
-    token.push({
-      type: 'sperator',
-      value: '',
+
+    // 排除是指令的情况后，剩下的可能有：角色说话、旁白
+    const sayRes = recognizeSay(line);
+    if (sayRes !== false) {
+      tokens = tokens.concat(sayRes);
+      return;
+    }
+    // 如果不是角色说话，那么认为是旁白
+    tokens.push({
+      type: 'aside',
+      value: line,
     });
-    if (!isSuccess) {
-      throw new Error(`无法解析的文本: ${line}`);
-    }
   });
-  return token;
+  return tokens;
 };
 
-// 根据 token 生成事件串
-const Parser = (tokens: Token[]): SecenEvent[] => {
-  const event: SecenEvent[] = [];
+/**
+ * 语法分析，根据 Token 串生成指令，将可合并的指令组合在一起，生成事件；
+ * 事件是指令的集合，比如，切换 bg 与人物说话属于同一个事件，可以并行执行。事件使用二维数组表示；
+ * 后续还将对事件进行优化，比如在同一个事件内，切换 bg 只有最后一次生效...工作量好大，召唤爱莉希雅帮我优化！
+ * 要求剧本遵循 LL(1) 文法
+ */
+const Parser = (tokens: Token[]): SecenEvent[][] => {
+  // 在同一个事件中，只能存在一个不可组合指令。默认 say、aside 类型事件需要交互（点击）
+  const cannotCombindInstruction = ['say', 'sperateEvent', 'aside'];
+  const instructions: SecenEvent[] = [];
   const EOF = '$';
   let current = -1;
   const getNextToken = (): typeof EOF | Token => {
@@ -116,6 +145,11 @@ const Parser = (tokens: Token[]): SecenEvent[] => {
       return EOF;
     }
     return tokens[current];
+  };
+  const goBack = () => {
+    if (current >= 1) {
+      current -= 1;
+    }
   };
   let lookahead = getNextToken();
 
@@ -126,8 +160,9 @@ const Parser = (tokens: Token[]): SecenEvent[] => {
         names.push(lookahead.value as string);
         lookahead = getNextToken();
       }
+      goBack();
       return {
-        type: 'addCharactor',
+        type: 'charactorChange',
         value: names,
       };
     }
@@ -150,29 +185,58 @@ const Parser = (tokens: Token[]): SecenEvent[] => {
 
   while (lookahead !== EOF) {
     if (lookahead.type === 'bg') {
-      event.push({
+      instructions.push({
         type: 'bgChange',
         value: lookahead.value,
       });
     } else if (lookahead.type === 'music') {
-      event.push({
+      instructions.push({
         type: 'musicChange',
+        value: lookahead.value,
+      });
+    } else if (lookahead.type === 'voice') {
+      instructions.push({
+        type: 'voiceChange',
+        value: lookahead.value,
+      });
+    } else if (lookahead.type === 'aside') {
+      instructions.push({
+        type: 'aside',
+        value: lookahead.value,
+      });
+    } else if (lookahead.type === 'sperator') {
+      instructions.push({
+        type: 'sperateEvent',
         value: lookahead.value,
       });
     } else if (lookahead.type === 'addCharactorName') {
       const res = matchAddCharactor(lookahead);
       if (res !== false) {
-        event.push(res);
+        instructions.push(res);
       }
     } else if (lookahead.type === 'sayName') {
       const res = matchSay(lookahead);
       if (res !== false) {
-        event.push(res);
+        instructions.push(res);
       }
     }
     lookahead = getNextToken();
   }
-  return event;
+
+  // 组合可并行指令生成事件
+  let events: SecenEvent[][] = [];
+  instructions.forEach(inst => {
+    if (events.length > 0 && events[events.length - 1].every(e => !cannotCombindInstruction.includes(e.type))) {
+      events[events.length - 1].push(inst);
+      return;
+    }
+    events.push([inst]);
+  });
+  events = events.map(event => {
+    return event.filter(e => e.type !== 'sperateEvent');
+  });
+
+  return events;
 };
 
 export { Scanner, Parser };

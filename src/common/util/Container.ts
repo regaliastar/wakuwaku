@@ -7,7 +7,7 @@ import { Scanner, Parser } from '~util/Parser';
 class Container {
   _currentPage: BasicView | undefined;
   _readyState: Map<ReadyStateType, boolean>; // 当所有状态都为 true 时，才能执行下一个指令
-  _secenEvents: SecenEvent[] = [];
+  _secenEvents: SecenEvent[][] = [];
   _curEventIndex: number; // 当前触发场景事件
   constructor() {
     this._readyState = new Map();
@@ -38,13 +38,14 @@ class Container {
     this.bindSecenEvents(events);
   }
 
-  bindSecenEvents(secenEvents: SecenEvent[]) {
+  bindSecenEvents(secenEvents: SecenEvent[][]) {
     this._secenEvents = secenEvents;
   }
 
   // 触发事件后由触发者执行自己注册的函数，Container 不关注具体实现细节
-  execNextEvent(node: BasicView): boolean {
-    console.log('execNextEvent', this.isSecenReady(), this._secenEvents[this._curEventIndex]);
+  async execNextEvent(node: BasicView): Promise<boolean> {
+    const event = this._secenEvents[this._curEventIndex];
+    console.log('execNextEvent', this.isSecenReady(), event);
     if (this._curEventIndex >= this._secenEvents.length) {
       this.gameOver();
       return false;
@@ -52,8 +53,15 @@ class Container {
     if (!this.isSecenReady()) {
       return false;
     }
-    const { type, value } = this._secenEvents[this._curEventIndex];
-    node.triggerChildrenEvent(type, { params: value, once: true });
+    await Promise.all(
+      event.map(instruction => {
+        return new Promise<void>(resolve => {
+          const { type, value } = instruction;
+          node.triggerChildrenEvent(type, { params: value, once: true });
+          resolve();
+        });
+      }),
+    );
     this._curEventIndex += 1;
     return true;
   }
