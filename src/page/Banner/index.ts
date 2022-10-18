@@ -8,7 +8,6 @@ export default class Banner extends BasicView {
   constructor() {
     super();
     this._el = this.render();
-    this.initEvent();
   }
 
   template() {
@@ -29,9 +28,5 @@ export default class Banner extends BasicView {
       node?.appendChild(btn._el);
     });
     return node;
-  }
-
-  initEvent() {
-    // this._el.addEventListener('click', handleHrefEvent);
   }
 }

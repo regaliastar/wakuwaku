@@ -5,7 +5,7 @@
   "description": "A mini galgame engine",
   "repository": "https://github.com/regaliastar/wakuwaku",
   "scripts": {
-    "build": "webpack --config scripts/webpack.config.js --mode development && webpack --config scripts/webpack.config.render.js --mode development",
+    "build": "webpack --config scripts/webpack.config.electron.js --mode development && webpack --config scripts/webpack.config.render.js --mode development",
     "watch": "webpack --watch --config scripts/webpack.config.render.js --mode development",
     "lint": "eslint -c .eslintrc.js --ext .ts ./src",
     "fix": "eslint --fix src",
