@@ -69,8 +69,8 @@ export interface Token {
 
 // 定义场景事件类型
 enum SecenEventType {
-  'say',
-  'aside',
+  'say', // 角色说话
+  'aside', // 旁白
   'musicChange',
   'bgChange',
   'charactorChange',

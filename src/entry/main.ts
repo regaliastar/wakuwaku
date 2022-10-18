@@ -11,8 +11,7 @@ const main = () => {
   const root = document.getElementById('#root');
   routes.registerRoot(root);
   routes.registerPage('/', 'Banner');
-  const BannerHtmlEle = Page.Banner._el;
-  root?.appendChild(BannerHtmlEle);
+  root?.appendChild(Page.Entry._el);
 };
 
 main();

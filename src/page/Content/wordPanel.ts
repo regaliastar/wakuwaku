@@ -1,11 +1,6 @@
 import BasicView from '~component/BasicView';
 import Container from '~util/Container';
 import './wordPanel.scss';
-import { EventFnParams, ConstructorParams } from '~interface/index';
-
-interface wordParams extends ConstructorParams {
-  text: string;
-}
 
 const typeText = () => {
   const container = document.querySelector('#textInPanel');
@@ -37,8 +32,8 @@ const getWordGroupBySpan = (text: string): string => {
 };
 
 export default class wordPanel extends BasicView {
-  constructor(options: wordParams) {
-    super(options);
+  constructor() {
+    super();
     this.registerEvent('onMount', () => {
       typeText();
     });
@@ -50,24 +45,24 @@ export default class wordPanel extends BasicView {
       });
       Container.setReadyState('typingDone', true);
     });
-    this.registerEvent('say', (result: EventFnParams) => {
-      if (result?.['text']) {
-        this.updataText(result?.text);
-        typeText();
-      }
+    this.registerEvent('say', result => {
+      this.updateCharactorName(result?.name);
+      this.updataText(result?.text);
+      typeText();
     });
-    this.registerEvent('aside', (result: EventFnParams) => {
+    this.registerEvent('aside', result => {
+      this.updateCharactorName('');
       this.updataText(result);
       typeText();
     });
   }
 
-  template(options: wordParams) {
-    const txtGroupBySpan = getWordGroupBySpan(options.text);
+  template() {
     return `
     <div class='wordPanel'>
+      <div id='charactorName'></div>
       <div class='text' id='textInPanel'>
-        <div id='textGroup'>${txtGroupBySpan}</div>
+        <div id='textGroup'></div>
       </div>
     </div>
     `;
@@ -80,5 +75,13 @@ export default class wordPanel extends BasicView {
       return;
     }
     textPanel.innerHTML = `<div id='textGroup'>${getWordGroupBySpan(text)}</div>`;
+  }
+
+  updateCharactorName(name: string) {
+    const textPanel = document.getElementById('charactorName');
+    if (!textPanel || name === undefined) {
+      return;
+    }
+    textPanel.innerText = name;
   }
 }

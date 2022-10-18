@@ -14,8 +14,11 @@ export default class BasicView implements BasicViewInterface {
     bgChange: undefined,
     say: undefined,
     musicChange: undefined,
-    addCharactor: undefined,
+    charactorChange: undefined,
     stopTyping: undefined,
+    aside: undefined,
+    voiceChange: undefined,
+    sperateEvent: undefined,
   };
   _el: HTMLDivElement;
   _componentName = '';

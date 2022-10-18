@@ -43,7 +43,7 @@ class Container {
   }
 
   // 触发事件后由触发者执行自己注册的函数，Container 不关注具体实现细节
-  async execNextEvent(node: BasicView): Promise<boolean> {
+  async execNextEvent(page: BasicView): Promise<boolean> {
     const event = this._secenEvents[this._curEventIndex];
     console.log('execNextEvent', this.isSecenReady(), event);
     if (this._curEventIndex >= this._secenEvents.length) {
@@ -57,7 +57,7 @@ class Container {
       event.map(instruction => {
         return new Promise<void>(resolve => {
           const { type, value } = instruction;
-          node.triggerChildrenEvent(type, { params: value, once: true });
+          page.triggerChildrenEvent(type, { params: value, once: type === 'say' ? false : true });
           resolve();
         });
       }),

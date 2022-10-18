@@ -5,6 +5,11 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-
   background-image: url(../../../statics/img/banner.jpg);
+
+  a {
+    margin-bottom: 20px;
+    color: white;
+    font-size: large;
+  }
 }
