@@ -1,13 +1,14 @@
 import React, { FC } from 'react';
+import { Link } from 'react-router-dom';
 import style from './index.module.less';
 import less from '~style/common.module.less';
 
 const Welcome: FC = () => {
   return (
     <div className={`${style.banner} ${less.bg}`}>
-      <a href="#/content">新的游戏</a>
-      <a href="#/save">存档</a>
-      <a href="#/settings">设置</a>
+      <Link to="/content">新的游戏</Link>
+      <Link to="/save">存档</Link>
+      <Link to="/settings">设置</Link>
     </div>
   );
 };
