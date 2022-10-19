@@ -1,4 +1,4 @@
-import { Token, SecenEvent, CharactarSay } from '~interface/index';
+import { Token, SecenEvent, CharactarSay } from '~interface/parser';
 
 /**
  * 词法分析，分割词素，生成 Token 串

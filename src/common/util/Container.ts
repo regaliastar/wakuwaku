@@ -1,11 +1,11 @@
 import * as fs from 'fs';
-import BasicView from '~component/BasicView';
-import { SecenEvent, ReadyStateType } from '~interface/index';
+// import BasicView from '~component/BasicView';
+import { SecenEvent, ReadyStateType } from '~interface/parser';
 import { Scanner, Parser } from '~util/Parser';
 
 // IoC 容器
 class Container {
-  _currentPage: BasicView | undefined;
+  // _currentPage: BasicView | undefined;
   _readyState: Map<ReadyStateType, boolean>; // 当所有状态都为 true 时，才能执行下一个指令
   _secenEvents: SecenEvent[][] = [];
   _curEventIndex: number; // 当前触发场景事件
@@ -24,9 +24,9 @@ class Container {
     return flag;
   }
 
-  bindPage(component: BasicView) {
-    this._currentPage = component;
-  }
+  // bindPage(component: BasicView) {
+  //   this._currentPage = component;
+  // }
 
   loadDrama(filepath: string) {
     if (!fs.existsSync(filepath)) {
@@ -43,28 +43,28 @@ class Container {
   }
 
   // 触发事件后由触发者执行自己注册的函数，Container 不关注具体实现细节
-  async execNextEvent(page: BasicView): Promise<boolean> {
-    const event = this._secenEvents[this._curEventIndex];
-    console.log('execNextEvent', this.isSecenReady(), event);
-    if (this._curEventIndex >= this._secenEvents.length) {
-      this.gameOver();
-      return false;
-    }
-    if (!this.isSecenReady()) {
-      return false;
-    }
-    await Promise.all(
-      event.map(instruction => {
-        return new Promise<void>(resolve => {
-          const { type, value } = instruction;
-          page.triggerChildrenEvent(type, { params: value, once: type === 'say' ? false : true });
-          resolve();
-        });
-      }),
-    );
-    this._curEventIndex += 1;
-    return true;
-  }
+  // async execNextEvent(page: BasicView): Promise<boolean> {
+  //   const event = this._secenEvents[this._curEventIndex];
+  //   console.log('execNextEvent', this.isSecenReady(), event);
+  //   if (this._curEventIndex >= this._secenEvents.length) {
+  //     this.gameOver();
+  //     return false;
+  //   }
+  //   if (!this.isSecenReady()) {
+  //     return false;
+  //   }
+  //   await Promise.all(
+  //     event.map(instruction => {
+  //       return new Promise<void>(resolve => {
+  //         const { type, value } = instruction;
+  //         page.triggerChildrenEvent(type, { params: value, once: type === 'say' ? false : true });
+  //         resolve();
+  //       });
+  //     }),
+  //   );
+  //   this._curEventIndex += 1;
+  //   return true;
+  // }
 
   setReadyState(key: ReadyStateType, value: boolean) {
     this._readyState.set(key, value);

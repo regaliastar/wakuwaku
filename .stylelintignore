@@ -1,0 +1,10 @@
+node_modules
+/dist
+/drama
+/build
+/statics
+.vscode
+.idea
+.husky
+.git
+**/*.md

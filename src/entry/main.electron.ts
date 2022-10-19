@@ -14,10 +14,10 @@ function createWindow() {
     },
   });
 
-  // 这里的路径是打包后的路径
-  mainWindow.loadFile(path.join(__dirname, '../', 'index.html'));
+  // 这里的 mainWindow 是打包后的路径 dist/main.js
+  mainWindow.loadFile(path.join(__dirname, '../', './src', './entry', 'index.html'));
 
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
