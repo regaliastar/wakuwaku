@@ -1,11 +1,7 @@
-import * as fs from 'fs';
-// import BasicView from '~component/BasicView';
 import { SecenEvent, ReadyStateType } from '~interface/parser';
-import { Scanner, Parser } from '~util/Parser';
 
 // IoC 容器
 class Container {
-  // _currentPage: BasicView | undefined;
   _readyState: Map<ReadyStateType, boolean>; // 当所有状态都为 true 时，才能执行下一个指令
   _secenEvents: SecenEvent[][] = [];
   _curEventIndex: number; // 当前触发场景事件
@@ -22,20 +18,6 @@ class Container {
       }
     });
     return flag;
-  }
-
-  // bindPage(component: BasicView) {
-  //   this._currentPage = component;
-  // }
-
-  loadDrama(filepath: string) {
-    if (!fs.existsSync(filepath)) {
-      throw new Error(`${filepath} 文件不存在`);
-    }
-    const text = fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' });
-    const tokens = Scanner(text);
-    const events = Parser(tokens);
-    this.bindSecenEvents(events);
   }
 
   bindSecenEvents(secenEvents: SecenEvent[][]) {
