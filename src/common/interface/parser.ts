@@ -14,7 +14,7 @@ export interface ScriptScene {
 enum tokenType {
   'text',
   'bg',
-  'music', // bgm
+  'bgm',
   'voice', // 音效
   'addCharactorName',
   'sayName',
@@ -28,20 +28,20 @@ export interface Token {
 }
 
 // 定义场景事件类型
-export enum SecenEventType {
-  'say', // 角色说话
+export enum SecenEventTypeEnum {
+  'say', // 角色说话, CharactarSay
   'aside', // 旁白
-  'musicChange',
+  'bgmChange',
   'bgChange',
   'charactorChange',
   'voiceChange',
   'sperateEvent', // 分割事件，要求玩家交互（如点击屏幕）才能继续触发下个场景。该事件对外部透明
 }
 
-export interface SecenEvent {
-  type: keyof typeof SecenEventType;
-  value: CharactarSay | string | string[];
-}
+export type SecenEventType = keyof typeof SecenEventTypeEnum;
+export type SecenEventValue = CharactarSay | string | string[];
 
-/** Container */
-export type ReadyStateType = 'typingDone';
+export interface SecenEvent {
+  type: SecenEventType;
+  value: SecenEventValue;
+}

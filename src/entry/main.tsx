@@ -1,8 +1,7 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
+import { RecoilRoot } from 'recoil';
 import App from './App';
-import store from '~store/index';
 
 location.hash = '';
 const container = document.getElementById('root');
@@ -10,9 +9,9 @@ if (container) {
   const root = createRoot(container);
   root.render(
     <StrictMode>
-      <Provider store={store}>
+      <RecoilRoot>
         <App />
-      </Provider>
+      </RecoilRoot>
     </StrictMode>,
   );
 }

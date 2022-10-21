@@ -1,29 +1,39 @@
 import React, { FC, useEffect } from 'react';
 import Typist from 'react-typist-component';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSetRecoilState, useRecoilValue, useRecoilState } from 'recoil';
 import style from './WordPanel.module.less';
-import { RootState } from '~store/index';
-import { setReadyState } from '~store/reducers/content';
 import { CharactarSay } from '~interface/parser';
+import { readyState, stopTyping, currentCharactarSay } from '~store/content';
+import Container from '~util/container';
 
-const WordPanel: FC<CharactarSay> = params => {
-  const stopTyping = useSelector((value: RootState) => value.content.stopTyping);
-  const dispatch = useDispatch();
+const WordPanel: FC = () => {
+  const setReadyState = useSetRecoilState(readyState);
+  const [curCharactorSay, setCurCharactarSay] = useRecoilState(currentCharactarSay);
+  const _stopTyping = useRecoilValue(stopTyping);
+  const say = (result: CharactarSay) => {
+    setCurCharactarSay(result);
+  };
   useEffect(() => {
-    if (!stopTyping) {
-      dispatch(setReadyState({ typingDone: true }));
+    Container.registerEvent('say', say);
+    return () => {
+      Container.removeEvent(say);
+    };
+  }, []);
+  useEffect(() => {
+    if (!_stopTyping) {
+      setReadyState({ typingDone: true });
     }
-  }, [stopTyping]);
+  }, [_stopTyping]);
 
   return (
     <div className={style.wordPanel}>
-      <div>{params.name}</div>
+      <div>{curCharactorSay.name}</div>
       <div className={style.text}>
-        {stopTyping ? (
-          <span>{params.text}</span>
+        {_stopTyping ? (
+          <span>{curCharactorSay.text}</span>
         ) : (
-          <Typist onTypingDone={() => dispatch(setReadyState({ typingDone: true }))}>
-            <span>{params.text}</span>
+          <Typist onTypingDone={() => setReadyState({ typingDone: true })}>
+            <span>{curCharactorSay.text}</span>
           </Typist>
         )}
       </div>

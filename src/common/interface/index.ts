@@ -35,4 +35,4 @@ enum pageOwnEventType {
   'stopTyping',
 }
 
-export type PageEventType = keyof typeof pageOwnEventType | keyof typeof SecenEventType;
+export type PageEventType = keyof typeof pageOwnEventType | SecenEventType;
