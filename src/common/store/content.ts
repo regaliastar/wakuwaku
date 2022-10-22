@@ -3,13 +3,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { CharactarSay } from '~interface/parser';
 
 interface ReadyStateType {
-  typingDone: boolean;
+  typingDone?: boolean;
+  vedioDone?: boolean;
 }
 
 export const readyState = atom({
   key: uuidv4(),
   default: <ReadyStateType>{
-    typingDone: false,
+    typingDone: false, // 初始化时默认开始打字
+    vedioDone: true,
   },
 });
 
@@ -31,4 +33,9 @@ export const currentCharactarSay = atom({
     name: '',
     text: '',
   },
+});
+
+export const auto = atom({
+  key: uuidv4(),
+  default: false,
 });

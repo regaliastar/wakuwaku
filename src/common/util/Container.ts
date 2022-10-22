@@ -32,7 +32,7 @@ class Container {
   }
 
   async triggerEvent(event: SecenEvent[]) {
-    return Promise.all(
+    return await Promise.all(
       event.map(instruction => {
         return new Promise<void>((resolve, reject) => {
           try {
