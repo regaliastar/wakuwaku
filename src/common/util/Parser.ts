@@ -20,7 +20,7 @@ const Scanner = (text: string): Array<Token> => {
   };
 
   const recognizeMusic = (line: string): Token | false => {
-    if (line.substring(0, 6) === '>music') {
+    if (line.substring(0, 4) === '>bgm') {
       const arr = line.includes(':') ? line.split(':') : line.split('：');
       if (arr.length !== 2) {
         return false;

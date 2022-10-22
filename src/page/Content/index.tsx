@@ -1,22 +1,23 @@
 import React, { FC, useEffect, useState } from 'react';
+// import { Spin } from 'antd';
 import { useSetRecoilState, useRecoilValue, useRecoilState } from 'recoil';
 import style from './index.module.less';
 import WordPanel from './WordPanel';
+import Toolbar from './Toolbar';
 import less from '~style/common.module.less';
-import { stopTyping, hasAllReady, auto, currentCharactarSay } from '~store/content';
-import { currentEvent, currentEventIndex } from '~store/script';
+import { stopTyping, hasAllReady, auto, currentCharactarSay, toolbarVisiable, hasAllReadyInAuto } from '~store/content';
 import Container from '~util/container';
 
 const ROOT_PATH = `../..`;
 
 const Content: FC = () => {
   // 共享状态
-  const event = useRecoilValue(currentEvent);
-  const [eventIndex, setEventIndex] = useRecoilState(currentEventIndex);
   const setStopTyping = useSetRecoilState(stopTyping);
-  const _auto = useRecoilValue(auto);
+  const [_auto, setAuto] = useRecoilState(auto);
   const _hasAllReady = useRecoilValue(hasAllReady);
+  const _hasAllReadyInAuto = useRecoilValue(hasAllReadyInAuto);
   const curCharactorSay = useRecoilValue(currentCharactarSay);
+  const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   // 自身状态
   const [changeCharactors, setChangeCharactor] = useState<string[]>([]);
   const [bgImg, setBgImg] = useState('');
@@ -32,22 +33,31 @@ const Content: FC = () => {
   };
 
   useEffect(() => {
-    if (_hasAllReady && _auto) {
-      setTimeout(() => {
-        handleClick();
-      }, 500);
+    let autoInterval: NodeJS.Timeout | undefined;
+    if (_auto) {
+      autoInterval = setInterval(async () => {
+        if (!_auto) {
+          return;
+        }
+        if (_hasAllReadyInAuto) {
+          await Container.triggerNextEvent();
+        }
+      }, 1000);
+    } else {
+      clearInterval(autoInterval);
     }
+    return () => clearInterval(autoInterval);
   }, [_auto]);
 
   useEffect(() => {
     Container.registerEvent('say', say);
+    Container.registerEvent('aside', say);
     Container.registerEvent('charactorChange', charactorChange);
     Container.registerEvent('bgChange', bgChange);
 
     // 初始化
-    if (eventIndex === 0 && event) {
-      Container.triggerEvent(event);
-      setEventIndex(eventIndex + 1);
+    if (Container._currentEventIndex === 0) {
+      Container.triggerNextEvent();
     }
     return () => {
       Container.removeEvent(say);
@@ -55,44 +65,43 @@ const Content: FC = () => {
       Container.removeEvent(bgChange);
     };
   }, []);
+
   const handleClick = async () => {
-    console.log('handleClick', _hasAllReady, event);
-    if (_hasAllReady && event) {
-      await Container.triggerEvent(event);
-      setEventIndex(eventIndex + 1);
-      return;
-    }
-    if (event === null) {
-      // 游戏结束
-      console.log('game over');
+    if (_hasAllReady) {
+      const res = await Container.triggerNextEvent();
+      if (res === null) {
+        console.log('game over');
+      }
       return;
     }
     if (!_hasAllReady) {
+      // 按优先级依次执行
+      if (!_toolbarVisiable) {
+        setToolbarVisiable(true);
+        return;
+      }
+      // 点击后必然要做的行为
       setStopTyping(true);
+      setAuto(false);
     }
   };
 
-  return eventIndex > 0 || event ? (
+  return (
     <div className={style.content} onClick={handleClick}>
-      <div className={less.bg} style={{ backgroundImage: `url(${ROOT_PATH}/drama/bg/${bgImg})` }}>
+      <Toolbar />
+      <div className={less.bg} style={{ backgroundImage: bgImg && `url(${ROOT_PATH}/drama/bg/${bgImg})` }}>
         <div className={style.charactor}>
-          {changeCharactors.length > 0 ? (
-            changeCharactors.map(name => (
-              <img
-                key={name}
-                className={curCharactorSay.name === name ? style.activeCharactorImg : style.charactorImg}
-                src={`${ROOT_PATH}/drama/charactor/${name}.png`}
-              ></img>
-            ))
-          ) : (
-            <></>
-          )}
+          {changeCharactors.map(name => (
+            <img
+              key={name}
+              className={curCharactorSay.name === name ? style.activeCharactorImg : style.charactorImg}
+              src={`${ROOT_PATH}/drama/charactor/${name}.png`}
+            ></img>
+          ))}
         </div>
       </div>
-      <WordPanel></WordPanel>
+      <WordPanel />
     </div>
-  ) : (
-    <>Loading</>
   );
 };
 
