@@ -1,4 +1,4 @@
-import { Token, SecenEvent, CharactarSay } from '~interface/index';
+import { Token, SecenEvent, CharactarSay } from '~interface/parser';
 
 /**
  * 词法分析，分割词素，生成 Token 串
@@ -26,7 +26,7 @@ const Scanner = (text: string): Array<Token> => {
         return false;
       }
       return {
-        type: 'music',
+        type: 'bgm',
         value: arr[1].trim(),
       };
     }
@@ -189,9 +189,9 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
         type: 'bgChange',
         value: lookahead.value,
       });
-    } else if (lookahead.type === 'music') {
+    } else if (lookahead.type === 'bgm') {
       instructions.push({
-        type: 'musicChange',
+        type: 'bgmChange',
         value: lookahead.value,
       });
     } else if (lookahead.type === 'voice') {
