@@ -1,14 +1,25 @@
 .wordPanel {
+  @color: black;
+
   display: flex;
   flex-direction: column;
   position: fixed;
-  bottom: 0px;
-  width: 100%;
+  bottom: 10px;
+  width: 80%;
   border: 1px solid black;
+  font-size: 25px;
+
+  .name {
+    padding: 10px 10px 0px 10px;
+  }
+  .line {
+    border: 0;
+    border-top: 1px solid #d0d0d5;
+    opacity: 0.8;
+  }
   .text {
     word-break: break-all;
     height: 20vh;
     padding: 10px;
-    font-size: 22px;
   }
 }

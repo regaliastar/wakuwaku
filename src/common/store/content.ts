@@ -2,23 +2,32 @@ import { atom, selector } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
 import { CharactarSay } from '~interface/parser';
 
-interface ReadyStateType {
-  typingDone?: boolean;
-  vedioDone?: boolean;
-}
-
-export const readyState = atom({
+export const typingDone = atom({
   key: uuidv4(),
-  default: <ReadyStateType>{
-    typingDone: false, // 初始化时默认开始打字
-    vedioDone: true,
-  },
+  default: false,
+});
+
+export const vedioDone = atom({
+  key: uuidv4(),
+  default: true,
+});
+
+export const toolbarVisiable = atom({
+  key: uuidv4(),
+  default: true,
 });
 
 export const hasAllReady = selector({
   key: uuidv4(),
   get: ({ get }) => {
-    return Object.values(get(readyState)).every(_ => _);
+    return get(typingDone) && get(vedioDone) && get(toolbarVisiable) && !get(auto);
+  },
+});
+
+export const hasAllReadyInAuto = selector({
+  key: uuidv4(),
+  get: ({ get }) => {
+    return get(typingDone) && get(vedioDone);
   },
 });
 

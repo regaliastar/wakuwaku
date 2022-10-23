@@ -6,7 +6,7 @@ import { Token, SecenEvent, CharactarSay } from '~interface/parser';
  */
 const Scanner = (text: string): Array<Token> => {
   const recognizeBg = (line: string): Token | false => {
-    if (line.substring(0, 3) === '>bg') {
+    if (line.substring(0, 3) === '>bg' && line.substring(0, 4) !== '>bgm') {
       const arr = line.includes(':') ? line.split(':') : line.split('：');
       if (arr.length !== 2) {
         return false;
@@ -19,8 +19,8 @@ const Scanner = (text: string): Array<Token> => {
     return false;
   };
 
-  const recognizeMusic = (line: string): Token | false => {
-    if (line.substring(0, 6) === '>music') {
+  const recognizeBgm = (line: string): Token | false => {
+    if (line.substring(0, 4) === '>bgm') {
       const arr = line.includes(':') ? line.split(':') : line.split('：');
       if (arr.length !== 2) {
         return false;
@@ -91,7 +91,7 @@ const Scanner = (text: string): Array<Token> => {
     if (line[0] === '/' && line[1] === '/') return;
 
     if (line[0] === '>') {
-      const res = recognizeBg(line) || recognizeMusic(line) || recognizeVoice(line);
+      const res = recognizeBg(line) || recognizeBgm(line) || recognizeVoice(line);
       if (res) {
         tokens.push(res);
         return;

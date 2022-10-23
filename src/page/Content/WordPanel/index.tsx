@@ -1,38 +1,27 @@
-import React, { FC, useEffect } from 'react';
-import { useSetRecoilState, useRecoilValue, useRecoilState } from 'recoil';
+import React, { FC } from 'react';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import Typist from './Typist';
 import style from './index.module.less';
-import { CharactarSay } from '~interface/parser';
-import { readyState, stopTyping, currentCharactarSay } from '~store/content';
-import Container from '~util/container';
+import { typingDone, stopTyping, currentCharactarSay } from '~store/content';
 
 const WordPanel: FC = () => {
-  const setReadyState = useSetRecoilState(readyState);
-  const [curCharactorSay, setCurCharactarSay] = useRecoilState(currentCharactarSay);
+  const setTypingDone = useSetRecoilState(typingDone);
+  const curCharactorSay = useRecoilValue(currentCharactarSay);
   const _stopTyping = useRecoilValue(stopTyping);
-
-  const say = (result: CharactarSay) => {
-    setCurCharactarSay(result);
-  };
-  useEffect(() => {
-    Container.registerEvent('say', say);
-    return () => {
-      Container.removeEvent(say);
-    };
-  }, []);
 
   return (
     <div className={style.wordPanel}>
-      <div>{curCharactorSay.name}</div>
+      <div className={style.name}>{curCharactorSay.name}</div>
+      {curCharactorSay.name && <div className={style.line}></div>}
       <div className={style.text}>
         <Typist
           text={curCharactorSay.text}
           stopTyping={_stopTyping}
           onTypingDone={() => {
-            setReadyState({ typingDone: true });
+            setTypingDone(true);
           }}
           onTypingStart={() => {
-            setReadyState({ typingDone: false });
+            setTypingDone(false);
           }}
         />
       </div>
