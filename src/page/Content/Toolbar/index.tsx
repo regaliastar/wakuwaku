@@ -31,17 +31,17 @@ const Toolbar: FC = () => {
 
   const confirmHistory = () => {
     console.log('getHistory', _history);
-    Modal.success({
+    Modal.info({
       title: '历史记录',
+      width: 1000,
       content: (
-        <p>
+        <div className={style.history}>
           {_history.map(h => {
-            return h?.name ? `${h?.name}: ${h?.text}` : `${h?.text}`;
+            return <p key={h?.text + Math.random().toString()}>{h?.name ? `${h?.name}: ${h?.text}` : `${h?.text}`}</p>;
           })}
-        </p>
+        </div>
       ),
-      okText: '确认',
-      cancelText: '取消',
+      okText: '关闭',
     });
   };
 

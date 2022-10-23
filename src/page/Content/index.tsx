@@ -75,7 +75,7 @@ const Content: FC = () => {
         if (_hasAllReadyInAuto) {
           await triggerNextEvent();
         }
-      }, 2000);
+      }, 1500);
     } else {
       clearInterval(autoInterval);
     }

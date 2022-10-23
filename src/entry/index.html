@@ -6,10 +6,25 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
   </head>
   <style>
-    body {margin: 0;}
+    body {
+      margin: 0;
+      cursor: url("../../statics/img/pointer.cur"), auto;
+    }
+    a:hover {
+      cursor: url("../../statics/img/hover.cur"), pointer;
+    }
   </style>
   <body>
     <div id="root"></div>
+    <audio id="clickSoundPlay">
+      <source src="../../statics/sound/click.mp3" type="audio/mp3">
+    </audio>
+    <script>
+      document.addEventListener('click', e => {
+        const clickAudio = document.getElementById('clickSoundPlay');
+        clickAudio.play();
+      })
+    </script>
     <script src="../../dist/renderer.js"></script>
     <script src="../../dist/main.js"></script>
   </body>
