@@ -37,7 +37,7 @@ export const history = selector({
       if (h.type === 'aside') {
         return {
           name: '',
-          text: h.value,
+          text: h.value as string,
         };
       }
       if (!_.isArray(h.value) && !_.isString(h.value)) {
