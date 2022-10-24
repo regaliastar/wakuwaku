@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState, useRef } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import _ from 'lodash';
 // import { Spin } from 'antd';
 import { useRecoilValue, useRecoilState } from 'recoil';
@@ -12,6 +12,8 @@ import {
   hasAllReady,
   auto,
   currentCharactarSay,
+  currentBg,
+  currentChangeCharactors,
   toolbarVisiable,
   hasAllReadyInAuto,
 } from '~store/content';
@@ -27,13 +29,13 @@ const Content: FC = () => {
   const _hasAllReady = useRecoilValue(hasAllReady);
   const _hasAllReadyInAuto = useRecoilValue(hasAllReadyInAuto);
   const [curCharactorSay, setCurCharactorSay] = useRecoilState(currentCharactarSay);
+  const [bgImg, setBgImg] = useRecoilState(currentBg);
+  const [changeCharactors, setChangeCharactor] = useRecoilState<string[]>(currentChangeCharactors);
   const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   const [_step, setStep] = useRecoilState(step);
   const _currentEvent = useRecoilValue(currentEvent);
   const [_typingDone, setTypingDone] = useRecoilState(typingDone);
-  // 自身状态
-  const [changeCharactors, setChangeCharactor] = useState<string[]>([]);
-  const [bgImg, setBgImg] = useState('');
+  // 可丢失状态
   const firstRenderRef = useRef(true);
 
   async function triggerNextEvent() {
@@ -92,7 +94,8 @@ const Content: FC = () => {
       triggerNextEvent();
     }
     return () => {
-      setStep(0);
+      // 退出前保存状态
+      // setStep(0);
     };
   }, []);
 

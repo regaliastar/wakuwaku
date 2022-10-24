@@ -1,9 +1,12 @@
 import React, { FC } from 'react';
-import { ExportOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { ExportOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Modal } from 'antd';
 import style from './index.module.less';
 
 const Toolbar: FC = () => {
+  const navigate = useNavigate();
+
   const confirmExit = () => {
     Modal.confirm({
       title: '退出',
@@ -17,6 +20,18 @@ const Toolbar: FC = () => {
   };
   return (
     <div className={style.toolbar}>
+      <div className={style.left}>
+        <div
+          className={style.item}
+          onClick={e => {
+            e.stopPropagation();
+            navigate(-1);
+          }}
+        >
+          <span>返回</span>
+          <ArrowLeftOutlined />
+        </div>
+      </div>
       <div className={style.right}>
         <div
           className={style.item}

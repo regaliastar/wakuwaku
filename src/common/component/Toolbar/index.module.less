@@ -6,6 +6,7 @@
   width: 100%;
   top: 0px;
   background: transparent;
+  z-index: 1000;
 
   span {
     color: white;
@@ -14,10 +15,18 @@
     font-size: 20px;
     font-weight: 800;
   }
+  svg {
+    color: gray;
+  }
+  .left {
+    display: flex;
+    justify-content: left;
+    margin-right: auto;
+    margin-left: 20px;
+  }
   .right {
     display: flex;
     justify-content: right;
-    margin-left: auto;
     margin-right: 20px;
   }
   .item {

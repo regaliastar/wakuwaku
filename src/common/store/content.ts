@@ -44,6 +44,16 @@ export const currentCharactarSay = atom({
   },
 });
 
+export const currentChangeCharactors = atom({
+  key: uuidv4(),
+  default: <Array<string>>[],
+});
+
+export const currentBg = atom({
+  key: uuidv4(),
+  default: '',
+});
+
 export const auto = atom({
   key: uuidv4(),
   default: false,

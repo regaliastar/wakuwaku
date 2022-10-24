@@ -6,3 +6,9 @@ export type ComponentPage = {
   path: string;
   children?: Record<string, ComponentPage>;
 };
+
+export type SaveData = {
+  id: number;
+  img?: string;
+  date?: string;
+};
