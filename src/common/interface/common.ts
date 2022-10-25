@@ -1,5 +1,6 @@
 import { LoadableComponent } from '@loadable/component';
 import { ReactNode } from 'react';
+import { CharactarSay } from './parser';
 
 export type ComponentPage = {
   component: LoadableComponent<{ children?: ReactNode }>;
@@ -8,7 +9,11 @@ export type ComponentPage = {
 };
 
 export type SaveData = {
-  id: number;
-  img?: string;
-  date?: string;
+  id: string;
+  step: number;
+  date: string;
+  meta?: string;
+  currentCharactarSay?: CharactarSay;
+  currentChangeCharactors?: string[];
+  currentBg?: string;
 };

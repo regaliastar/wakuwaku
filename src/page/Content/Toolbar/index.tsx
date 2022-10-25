@@ -27,7 +27,6 @@ const Toolbar: FC = () => {
       okText: '确认',
       cancelText: '取消',
       onOk: () => {
-        // location.href = '';
         navigate('/welcome');
       },
     });

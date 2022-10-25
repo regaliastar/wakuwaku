@@ -29,22 +29,22 @@ const Content: FC = () => {
   const _hasAllReady = useRecoilValue(hasAllReady);
   const _hasAllReadyInAuto = useRecoilValue(hasAllReadyInAuto);
   const [curCharactorSay, setCurCharactorSay] = useRecoilState(currentCharactarSay);
-  const [bgImg, setBgImg] = useRecoilState(currentBg);
-  const [changeCharactors, setChangeCharactor] = useRecoilState<string[]>(currentChangeCharactors);
+  const [curBg, setCurBg] = useRecoilState(currentBg);
+  const [curCharactors, setCurCharactor] = useRecoilState<string[]>(currentChangeCharactors);
   const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   const [_step, setStep] = useRecoilState(step);
-  const _currentEvent = useRecoilValue(currentEvent);
+  const curEvent = useRecoilValue(currentEvent);
   const [_typingDone, setTypingDone] = useRecoilState(typingDone);
   // 可丢失状态
   const firstRenderRef = useRef(true);
 
   async function triggerNextEvent() {
-    console.log('triggerNextEvent', _step, _currentEvent);
-    if (_currentEvent === null) {
+    console.log('triggerNextEvent', _step, curEvent);
+    if (curEvent === null) {
       return null;
     }
     const res = await Promise.all(
-      _currentEvent.map(instruction => {
+      curEvent.map(instruction => {
         return new Promise<void>(resolve => {
           if (instruction.type === 'say') {
             setStopTyping(false);
@@ -55,9 +55,9 @@ const Content: FC = () => {
               text: instruction.value as string,
             });
           } else if (instruction.type === 'charactorChange') {
-            setChangeCharactor(instruction.value as string[]);
+            setCurCharactor(instruction.value as string[]);
           } else if (instruction.type === 'bgChange') {
-            setBgImg(instruction.value as string);
+            setCurBg(instruction.value as string);
           }
           resolve();
         });
@@ -124,9 +124,9 @@ const Content: FC = () => {
   return (
     <div className={style.content} onClick={handleClick}>
       <Toolbar />
-      <div className={less.bg} style={{ backgroundImage: bgImg && `url(${ROOT_PATH}/drama/bg/${bgImg})` }}>
+      <div className={less.bg} style={{ backgroundImage: curBg && `url(${ROOT_PATH}/drama/bg/${curBg})` }}>
         <div className={style.charactor}>
-          {changeCharactors.map(name => (
+          {curCharactors.map(name => (
             <img
               key={name}
               className={curCharactorSay.name === name ? style.activeCharactorImg : style.charactorImg}
