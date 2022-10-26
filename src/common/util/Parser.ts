@@ -6,8 +6,8 @@ import { Token, SecenEvent, CharactarSay } from '~interface/parser';
  */
 const Scanner = (text: string): Array<Token> => {
   const recognizeBg = (line: string): Token | false => {
-    if (line.substring(0, 3) === '>bg' && line.substring(0, 4) !== '>bgm') {
-      const arr = line.includes(':') ? line.split(':') : line.split('：');
+    if (line.substring(0, 3) === '/bg' && line.substring(0, 4) !== '/bgm') {
+      const arr = line.includes(':') ? line.split(':') : line.split(' ');
       if (arr.length !== 2) {
         return false;
       }
@@ -20,8 +20,8 @@ const Scanner = (text: string): Array<Token> => {
   };
 
   const recognizeBgm = (line: string): Token | false => {
-    if (line.substring(0, 4) === '>bgm') {
-      const arr = line.includes(':') ? line.split(':') : line.split('：');
+    if (line.substring(0, 4) === '/bgm') {
+      const arr = line.includes(':') ? line.split(':') : line.split(' ');
       if (arr.length !== 2) {
         return false;
       }
@@ -34,8 +34,8 @@ const Scanner = (text: string): Array<Token> => {
   };
 
   const recognizeVoice = (line: string): Token | false => {
-    if (line.substring(0, 6) === '>voice') {
-      const arr = line.includes(':') ? line.split(':') : line.split('：');
+    if (line.substring(0, 6) === '/voice') {
+      const arr = line.includes(':') ? line.split(':') : line.split(' ');
       if (arr.length !== 2) {
         return false;
       }
@@ -90,7 +90,7 @@ const Scanner = (text: string): Array<Token> => {
     if (line === '') return;
     if (line[0] === '/' && line[1] === '/') return;
 
-    if (line[0] === '>') {
+    if (line[0] === '/') {
       const res = recognizeBg(line) || recognizeBgm(line) || recognizeVoice(line);
       if (res) {
         tokens.push(res);
@@ -124,6 +124,7 @@ const Scanner = (text: string): Array<Token> => {
       value: line,
     });
   });
+  console.log('Scanner', tokens);
   return tokens;
 };
 
@@ -184,41 +185,52 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
   };
 
   while (lookahead !== EOF) {
-    if (lookahead.type === 'bg') {
-      instructions.push({
-        type: 'bgChange',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'bgm') {
-      instructions.push({
-        type: 'bgmChange',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'voice') {
-      instructions.push({
-        type: 'voiceChange',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'aside') {
-      instructions.push({
-        type: 'aside',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'sperator') {
-      instructions.push({
-        type: 'sperateEvent',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'addCharactorName') {
-      const res = matchAddCharactor(lookahead);
-      if (res !== false) {
-        instructions.push(res);
+    switch (lookahead.type) {
+      case 'bg':
+        instructions.push({
+          type: 'bgChange',
+          value: lookahead.value,
+        });
+        break;
+      case 'bgm':
+        instructions.push({
+          type: 'bgmChange',
+          value: lookahead.value,
+        });
+        break;
+      case 'voice':
+        instructions.push({
+          type: 'voiceChange',
+          value: lookahead.value,
+        });
+        break;
+      case 'aside':
+        instructions.push({
+          type: 'aside',
+          value: lookahead.value,
+        });
+        break;
+      case 'sperator':
+        instructions.push({
+          type: 'sperateEvent',
+          value: lookahead.value,
+        });
+        break;
+      case 'addCharactorName': {
+        const res = matchAddCharactor(lookahead);
+        if (res !== false) {
+          instructions.push(res);
+        }
+        break;
       }
-    } else if (lookahead.type === 'sayName') {
-      const res = matchSay(lookahead);
-      if (res !== false) {
-        instructions.push(res);
+      case 'sayName': {
+        const res = matchSay(lookahead);
+        if (res !== false) {
+          instructions.push(res);
+        }
+        break;
       }
+      default:
     }
     lookahead = getNextToken();
   }
@@ -235,7 +247,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
   events = events.map(event => {
     return event.filter(e => e.type !== 'sperateEvent');
   });
-
+  console.log('Parser', events);
   return events;
 };
 

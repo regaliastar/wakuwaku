@@ -7,7 +7,7 @@ import style from './index.module.less';
 import SaveCard from '~component/SaveCard';
 import Toolbar from '~component/Toolbar';
 import { SaveData } from '~interface/common';
-import { saveHelper } from '~store/dbSchema';
+import { saveHelper } from '~store/db/dbSchema';
 import { currentCharactarSay, currentBg, currentChangeCharactors } from '~store/content';
 import { step } from '~store/script';
 

@@ -13,7 +13,7 @@ const WordPanel: FC = () => {
   return _toolbarVisiable ? (
     <div className={style.wordPanel}>
       <div className={style.name}>{curCharactorSay.name}</div>
-      {curCharactorSay.name && <div className={style.line}></div>}
+      {curCharactorSay.name ? <div className={style.line}></div> : <></>}
       <div className={style.text}>
         <Typist
           text={curCharactorSay.text}

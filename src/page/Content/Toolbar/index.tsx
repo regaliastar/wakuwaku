@@ -33,7 +33,6 @@ const Toolbar: FC = () => {
   };
 
   const confirmHistory = () => {
-    console.log('getHistory', _historyEvent);
     Modal.info({
       title: '历史记录',
       width: 1000,

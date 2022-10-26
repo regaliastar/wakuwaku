@@ -46,18 +46,25 @@ const Content: FC = () => {
     const res = await Promise.all(
       curEvent.map(instruction => {
         return new Promise<void>(resolve => {
-          if (instruction.type === 'say') {
-            setStopTyping(false);
-            setCurCharactorSay(instruction.value as CharactarSay);
-          } else if (instruction.type === 'aside') {
-            setCurCharactorSay({
-              name: '',
-              text: instruction.value as string,
-            });
-          } else if (instruction.type === 'charactorChange') {
-            setCurCharactor(instruction.value as string[]);
-          } else if (instruction.type === 'bgChange') {
-            setCurBg(instruction.value as string);
+          switch (instruction.type) {
+            case 'say':
+              setStopTyping(false);
+              setCurCharactorSay(instruction.value as CharactarSay);
+              break;
+            case 'aside':
+              setCurCharactorSay({
+                name: '',
+                text: instruction.value as string,
+              });
+              break;
+            case 'charactorChange':
+              setCurCharactor(instruction.value as string[]);
+              break;
+            case 'bgChange':
+              setCurBg(instruction.value as string);
+              break;
+            default:
+              console.log(`unsolve type ${instruction}`);
           }
           resolve();
         });
