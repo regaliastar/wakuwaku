@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, useCallback, useEffect, useRef } from 'react';
 import _ from 'lodash';
 // import { Spin } from 'antd';
 import { useRecoilValue, useRecoilState } from 'recoil';
@@ -34,11 +34,11 @@ const Content: FC = () => {
   const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   const [_step, setStep] = useRecoilState(step);
   const curEvent = useRecoilValue(currentEvent);
-  const [_typingDone, setTypingDone] = useRecoilState(typingDone);
+  const [_typingDone] = useRecoilState(typingDone);
   // 可丢失状态
   const firstRenderRef = useRef(true);
 
-  async function triggerNextEvent() {
+  const triggerNextEvent = async () => {
     console.log('triggerNextEvent', _step, curEvent);
     if (curEvent === null) {
       return null;
@@ -52,6 +52,7 @@ const Content: FC = () => {
               setCurCharactorSay(instruction.value as CharactarSay);
               break;
             case 'aside':
+              setStopTyping(false);
               setCurCharactorSay({
                 name: '',
                 text: instruction.value as string,
@@ -72,7 +73,7 @@ const Content: FC = () => {
     );
     setStep(_step + 1);
     return res;
-  }
+  };
 
   useEffect(() => {
     let autoInterval: NodeJS.Timeout | undefined;
@@ -106,9 +107,15 @@ const Content: FC = () => {
     };
   }, []);
 
-  const handleClick = _.throttle(async () => {
+  const delayTrigger = useCallback(
+    _.throttle(async () => await triggerNextEvent(), 1000),
+    [_step],
+  );
+  const handleClick = async () => {
+    console.log('handleClick', _hasAllReady, _step);
     if (_hasAllReady) {
-      const res = await triggerNextEvent();
+      // const res = await triggerNextEvent();
+      const res = await delayTrigger();
       if (res === null) {
         console.log('game over');
       }
@@ -120,13 +127,12 @@ const Content: FC = () => {
       return;
     }
     if (!_typingDone) {
-      setTypingDone(true);
+      setStopTyping(true);
       return;
     }
     // 点击后必然要做的行为
-    setStopTyping(true);
     setAuto(false);
-  }, 800);
+  };
 
   return (
     <div className={style.content} onClick={handleClick}>
