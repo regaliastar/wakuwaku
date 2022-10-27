@@ -5,6 +5,14 @@ export interface CharactarSay {
   text: string;
 }
 
+export interface IfValue {
+  text: string;
+  label: string;
+}
+type IfToken = {
+  type: 'if';
+  value: IfValue;
+};
 export interface ScriptScene {
   bg?: string;
   charactar?: Array<CharactarSay>;
@@ -20,12 +28,15 @@ enum tokenType {
   'sayName',
   'sperator', // 分割符
   'aside', // 旁白
+  'label',
+  'jump',
 }
 
-export interface Token {
+export interface CommonToken {
   type: keyof typeof tokenType;
-  value: string | CharactarSay;
+  value: string | CharactarSay | IfValue;
 }
+export type Token = CommonToken | IfToken;
 
 // 定义场景事件类型
 export enum SecenEventTypeEnum {
@@ -36,12 +47,19 @@ export enum SecenEventTypeEnum {
   'charactorChange',
   'voiceChange',
   'sperateEvent', // 分割事件，要求玩家交互（如点击屏幕）才能继续触发下个场景。该事件对外部透明
+  'if', // 选项
+  'label', // 选项结果
+  'jump', // 剧本跳转
 }
+type LabelValue = {
+  label: string;
+  instructions: SecenEvent[];
+};
 
 export type SecenEventType = keyof typeof SecenEventTypeEnum;
-export type SecenEventValue = CharactarSay | string | string[];
+export type SecenEventValue = CharactarSay | string | string[] | LabelValue | IfValue | IfValue[];
 
 export interface SecenEvent {
   type: SecenEventType;
-  value: SecenEventValue;
+  value: SecenEventValue | SecenEvent[];
 }

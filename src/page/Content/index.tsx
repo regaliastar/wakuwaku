@@ -78,6 +78,9 @@ const Content: FC = () => {
   useEffect(() => {
     let autoInterval: NodeJS.Timeout | undefined;
     if (_auto) {
+      if (_hasAllReadyInAuto) {
+        triggerNextEvent();
+      }
       autoInterval = setInterval(async () => {
         if (!_auto) {
           return;
@@ -102,20 +105,15 @@ const Content: FC = () => {
       triggerNextEvent();
     }
     return () => {
-      // 退出前保存状态
-      // setStep(0);
+      debounceTrigger.cancel();
     };
   }, []);
 
-  const delayTrigger = useCallback(
-    _.throttle(async () => await triggerNextEvent(), 1000),
-    [_step],
-  );
   const handleClick = async () => {
     console.log('handleClick', _hasAllReady, _step);
     if (_hasAllReady) {
       // const res = await triggerNextEvent();
-      const res = await delayTrigger();
+      const res = await debounceTrigger();
       if (res === null) {
         console.log('game over');
       }
@@ -126,13 +124,19 @@ const Content: FC = () => {
       setToolbarVisiable(true);
       return;
     }
+    if (_auto) {
+      setAuto(false);
+      return;
+    }
     if (!_typingDone) {
       setStopTyping(true);
       return;
     }
-    // 点击后必然要做的行为
-    setAuto(false);
   };
+  const debounceTrigger = useCallback(
+    _.debounce(async () => await triggerNextEvent(), 200),
+    [_toolbarVisiable, _auto, _step, _typingDone],
+  );
 
   return (
     <div className={style.content} onClick={handleClick}>

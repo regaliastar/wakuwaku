@@ -1,11 +1,11 @@
 import React, { FC } from 'react';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import Typist from './Typist';
 import style from './index.module.less';
 import { typingDone, stopTyping, currentCharactarSay, toolbarVisiable } from '~store/content';
 
 const WordPanel: FC = () => {
-  const setTypingDone = useSetRecoilState(typingDone);
+  const [_typingDone, setTypingDone] = useRecoilState(typingDone);
   const curCharactorSay = useRecoilValue(currentCharactarSay);
   const _stopTyping = useRecoilValue(stopTyping);
   const _toolbarVisiable = useRecoilValue(toolbarVisiable);
@@ -17,7 +17,7 @@ const WordPanel: FC = () => {
       <div className={style.text}>
         <Typist
           text={curCharactorSay.text}
-          stopTyping={_stopTyping}
+          disabled={_stopTyping || _typingDone}
           onTypingDone={() => {
             setTypingDone(true);
           }}

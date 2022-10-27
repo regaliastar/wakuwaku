@@ -40,9 +40,9 @@ export const history = selector({
           text: h.value as string,
         };
       }
-      if (!_.isArray(h.value) && !_.isString(h.value)) {
+      if (!_.isString(h.value) && 'name' in h.value && 'text' in h.value) {
         return {
-          name: h.value.name,
+          name: h.value?.name,
           text: h.value.text,
         };
       }
