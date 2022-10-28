@@ -2,11 +2,17 @@ import { atom, selector } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 import { loadScript } from '~util/common';
+// import EventTree from '~util/EventTree';
 
 const SecenEvents = atom({
   key: uuidv4(),
   default: loadScript('drama/test.txt'),
 });
+
+// const eventTree = atom({
+//   key: uuidv4(),
+//   default: EventTree.loadEvents(loadScript('drama/test.txt')),
+// });
 
 export const step = atom({
   key: uuidv4(),

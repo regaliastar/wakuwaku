@@ -12,7 +12,11 @@ enum NodeType {
   'root',
 }
 
-interface Node {
+interface NextEventOptions {
+  label: string;
+}
+
+export interface Node {
   value: Event;
   father?: Node;
   children: Node[];
@@ -27,30 +31,32 @@ class EventTree {
     NodeType: 'root',
     hash: uid(),
   };
+  tail: Node = this.root;
   current: Node = this.root;
 
   show() {
     console.log('============= show ===============');
     let pointer: Node = _.cloneDeep(this.root);
     while (pointer) {
-      console.dir(pointer, { depth: null });
       if (pointer.children) {
-        pointer.children.forEach(n => console.dir(n, { depth: null }));
+        pointer.children.forEach(n => console.dir(n));
       }
       pointer = pointer.children[0];
     }
+    console.log('============= show end ===============');
   }
 
-  loadEvents(events: Event[]) {
+  loadEvents(events: Event[]): EventTree {
     events.forEach(event => {
       this.addChild(event);
     });
+    return this;
   }
 
   addChild(child: Event): Node {
     const item: Node = {
       value: child,
-      father: this.current,
+      father: this.tail,
       hash: uid(),
       NodeType: 'default',
       children: [],
@@ -67,7 +73,7 @@ class EventTree {
     // 如果当前节点是label，接入该label的父节点if
     if (child.length === 1 && child[0].type === 'label' && !_.isString(child[0].value) && 'label' in child[0].value) {
       const label = child[0].value.label;
-      let pointer = _.cloneDeep(this.current);
+      let pointer = this.tail;
       while (pointer.father) {
         if (
           pointer.NodeType === 'if' &&
@@ -80,10 +86,8 @@ class EventTree {
           if (labelCol.includes(label)) {
             item.father = pointer;
             pointer.children.push(item);
-            this.current = item;
-            console.log('label father');
-            console.dir(item.father, { depth: null });
-            return this.current;
+            this.tail = item;
+            return this.tail;
           }
         }
         pointer = pointer.father;
@@ -91,24 +95,47 @@ class EventTree {
       throw new Error(`找不到if语句 ${JSON.stringify(child)}`);
     }
     // 如果上一个节点是label且该节点为普通节点，默认if的子节点全是label
-    if (this.current.NodeType === 'label') {
-      this.current.father?.children.forEach(labelNode => labelNode.children.push(item));
+    if (this.tail.NodeType === 'label') {
+      this.tail.father?.children.forEach(labelNode => labelNode.children.push(item));
     } else {
-      this.current.children?.push(item);
+      this.tail.children?.push(item);
     }
-    this.current = item;
-    // console.dir(item);
-    return this.current;
+    this.tail = item;
+    return this.tail;
   }
 
   getChildByHash(hash: string) {
-    if (!this.current.children) return null;
-    return this.current.children.find(v => v.hash === hash);
+    if (!this.tail.children) return null;
+    return this.tail.children.find(v => v.hash === hash);
   }
 
-  getNextEvent(): Event[] | null {
-    if (!this.current.children) return null;
-    return this.current.children.map(v => v.value);
+  getNextEvent(options?: NextEventOptions): Event | null {
+    if (this.current.children.length === 0) return null;
+    if (this.current.children.length === 1) {
+      const res = this.current.children[0];
+      this.current = this.current.children[0];
+      return res.value;
+    }
+    if (options?.label) {
+      const node = this.current.children.find(node => {
+        if (
+          node.value[0].type === 'label' &&
+          !_.isString(node.value[0].value) &&
+          'label' in node.value[0].value &&
+          node.value[0].value.label === options?.label
+        ) {
+          return true;
+        }
+        return false;
+      });
+      if (node === undefined) {
+        throw new Error(`找不到label: ${options.label}`);
+      }
+      const res = node.value;
+      this.current = this.current.children[0];
+      return res;
+    }
+    throw new Error(`找不到事件 ${options}, current: ${this.current}`);
   }
 }
 

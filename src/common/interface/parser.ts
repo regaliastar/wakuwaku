@@ -58,10 +58,17 @@ export enum SecenEventTypeEnum {
   'jump', // 剧本跳转
 }
 
+interface LabelSecenEvent {
+  type: 'label';
+  value: SecenEvent[];
+}
+
 export type SecenEventType = keyof typeof SecenEventTypeEnum;
 export type SecenEventValue = TokenValue | string[] | LabelValue | IfValue[];
 
-export interface SecenEvent {
+export interface CommonSecenEvent {
   type: SecenEventType;
-  value: SecenEventValue | SecenEvent[];
+  value: SecenEventValue;
 }
+
+export type SecenEvent = CommonSecenEvent | LabelSecenEvent;
