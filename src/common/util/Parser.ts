@@ -159,7 +159,7 @@ const Scanner = (text: string): Array<Token> => {
       value: line,
     });
   });
-  console.log('Scanner', tokens);
+  // console.log('Scanner', tokens);
   return tokens;
 };
 
@@ -176,7 +176,6 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
   const EOF = '$';
   let current = -1;
   const LabelDict: string[] = [];
-  // const eventTree = new EventTree();
   const getNextToken = (): typeof EOF | Token => {
     current += 1;
     if (current >= tokens.length) {
@@ -293,7 +292,10 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
         }
         lookahead = getNextToken();
       }
-      if (lookahead !== EOF && lookahead.type === 'label' && lookahead.value !== startLabel) {
+      if (lookahead === EOF) {
+        throw new Error('不能以label作为脚本结尾');
+      }
+      if (lookahead.type === 'label' && lookahead.value !== startLabel) {
         throw new Error(`label必须前后一致 ${startLabel} ${lookahead.value}`);
       }
       return {
@@ -384,7 +386,6 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
   events = events.map(event => {
     return event.filter(e => e.type !== 'sperateEvent');
   });
-  console.log('Parser', events);
   return events;
 };
 

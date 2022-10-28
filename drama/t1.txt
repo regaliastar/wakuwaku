@@ -1,0 +1,9 @@
+/if  选项1文本: label1 
+/if 选项2文本：label2
+label1:
+小爱：我是label1的文本
+xxxxx
+label1
+label2:
+小明：我是label2
+label2

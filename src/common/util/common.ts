@@ -10,3 +10,9 @@ export const loadScript = (filepath: string) => {
   const events = Parser(tokens);
   return events;
 };
+
+let id = -1;
+export const uid = (): string => {
+  id += 1;
+  return id.toString();
+};

@@ -12,6 +12,7 @@
     "fix": "eslint --fix src",
     "start": "npm run build && electron ./dist/main.js",
     "prepare": "husky install",
+    "test-parser": "npx ts-node src/common/util/test.ts",
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
@@ -50,6 +51,8 @@
     "stylelint-formatter-pretty": "^3.1.0",
     "stylelint-prettier": "^2.0.0",
     "ts-loader": "^9.4.1",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.0",
     "typescript": "^4.8.3",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"

@@ -1,3 +1,4 @@
+/** Token */
 export interface CharactarSay {
   name: string;
   img?: string;
@@ -12,6 +13,10 @@ export interface IfValue {
 type IfToken = {
   type: 'if';
   value: IfValue;
+};
+type LabelValue = {
+  label: string;
+  instructions: SecenEvent[];
 };
 export interface ScriptScene {
   bg?: string;
@@ -31,13 +36,14 @@ enum tokenType {
   'label',
   'jump',
 }
-
+type TokenValue = string | CharactarSay | IfValue;
 export interface CommonToken {
   type: keyof typeof tokenType;
-  value: string | CharactarSay | IfValue;
+  value: TokenValue;
 }
 export type Token = CommonToken | IfToken;
 
+/** Parser */
 // 定义场景事件类型
 export enum SecenEventTypeEnum {
   'say', // 角色说话, CharactarSay
@@ -51,13 +57,9 @@ export enum SecenEventTypeEnum {
   'label', // 选项结果
   'jump', // 剧本跳转
 }
-type LabelValue = {
-  label: string;
-  instructions: SecenEvent[];
-};
 
 export type SecenEventType = keyof typeof SecenEventTypeEnum;
-export type SecenEventValue = CharactarSay | string | string[] | LabelValue | IfValue | IfValue[];
+export type SecenEventValue = TokenValue | string[] | LabelValue | IfValue[];
 
 export interface SecenEvent {
   type: SecenEventType;
