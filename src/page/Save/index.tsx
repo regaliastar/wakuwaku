@@ -4,12 +4,13 @@ import moment from 'moment';
 import { Modal, Popconfirm } from 'antd';
 import { useRecoilState } from 'recoil';
 import style from './index.module.less';
+import EventTree from '~util/EventTree';
 import SaveCard from '~component/SaveCard';
 import Toolbar from '~component/Toolbar';
 import { SaveData } from '~interface/common';
 import { saveHelper } from '~store/db/dbSchema';
 import { currentCharactarSay, currentBg, currentChangeCharactors } from '~store/content';
-import { step } from '~store/script';
+import { step, hash } from '~store/script';
 
 const rowAmount = 3;
 const columnAmount = 3;
@@ -27,6 +28,7 @@ const Save: FC = () => {
   const [curBg, setCurBg] = useRecoilState(currentBg);
   const [curCharactors, setCurCharactor] = useRecoilState<string[]>(currentChangeCharactors);
   const [_step, setStep] = useRecoilState(step);
+  const [_hash, setHash] = useRecoilState(hash);
   const navigate = useNavigate();
   const [ingore, forceUpdate] = useReducer(x => x + 1, 0);
 
@@ -38,6 +40,7 @@ const Save: FC = () => {
       onOk: () => {
         saveHelper.put({
           id,
+          hash: _hash,
           step: _step,
           date: moment().format('llll'),
           currentCharactarSay: curCharactorSay,
@@ -56,6 +59,7 @@ const Save: FC = () => {
       onOk: async () => {
         saveHelper.add({
           id,
+          hash: _hash,
           step: _step,
           date: moment().format('llll'),
           currentCharactarSay: curCharactorSay,
@@ -76,6 +80,8 @@ const Save: FC = () => {
         if (res === false) {
           return;
         }
+        EventTree.gotoByHash(res.hash);
+        setHash(res.hash);
         setStep(res.step);
         if (res.currentCharactarSay) setCurCharactorSay(res.currentCharactarSay);
         if (res.currentBg) setCurBg(res.currentBg);

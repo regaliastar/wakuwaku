@@ -1,5 +1,5 @@
-import { Token, SecenEvent, CharactarSay } from '~interface/parser';
-// import EventTree from '~util/EventTree';
+import { Token, Instruction, CharactarSay } from '~interface/parser';
+import { groupEvent } from '~util/common';
 
 /**
  * 词法分析，分割词素，生成 Token 串
@@ -169,10 +169,8 @@ const Scanner = (text: string): Array<Token> => {
  * 后续还将对事件进行优化，比如在同一个事件内，切换 bg 只有最后一次生效...工作量好大，召唤爱莉希雅帮我优化！
  * 要求剧本遵循 LL(1) 文法
  */
-const Parser = (tokens: Token[]): SecenEvent[][] => {
-  // 在同一个事件中，只能存在一个不可组合指令。默认 say、aside 类型事件需要交互（点击）
-  const cannotCombindInstruction = ['say', 'sperateEvent', 'aside', 'if', 'label'];
-  const instructions: SecenEvent[] = [];
+const Parser = (tokens: Token[]): Instruction[][] => {
+  const instructions: Instruction[] = [];
   const EOF = '$';
   let current = -1;
   const LabelDict: string[] = [];
@@ -190,7 +188,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
   };
   let lookahead = getNextToken();
 
-  const matchAddCharactor = (curToken: Token): SecenEvent | false => {
+  const matchAddCharactor = (curToken: Token): Instruction | false => {
     const names: string[] = [];
     if (curToken.type === 'addCharactorName') {
       while (lookahead !== EOF && lookahead.type === 'addCharactorName') {
@@ -206,7 +204,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
     return false;
   };
 
-  const matchSay = (curToken: Token): SecenEvent | false => {
+  const matchSay = (curToken: Token): Instruction | false => {
     const lookahead = getNextToken();
     if (curToken.type === 'sayName' && lookahead !== EOF && lookahead.type === 'text') {
       return {
@@ -220,7 +218,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
     return false;
   };
 
-  const matchIf = (curToken: Token): SecenEvent | false => {
+  const matchIf = (curToken: Token): Instruction | false => {
     if (curToken.type === 'if') {
       const cont = [];
       while (lookahead !== EOF && lookahead.type === 'if') {
@@ -237,7 +235,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
     return false;
   };
 
-  const matchLabel = (curToken: Token): SecenEvent | false => {
+  const matchLabel = (curToken: Token): Instruction | false => {
     if (curToken.type === 'label') {
       const startLabel = curToken.value as string;
       const innerInst = [];
@@ -301,7 +299,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
       return {
         type: 'label',
         value: {
-          instructions: innerInst as SecenEvent[],
+          instructions: innerInst as Instruction[],
           label: startLabel,
         },
       };
@@ -374,19 +372,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
     lookahead = getNextToken();
   }
 
-  // 组合可并行指令生成事件
-  let events: SecenEvent[][] = [];
-  instructions.forEach(inst => {
-    if (events.length > 0 && events[events.length - 1].every(e => !cannotCombindInstruction.includes(e.type))) {
-      events[events.length - 1].push(inst);
-      return;
-    }
-    events.push([inst]);
-  });
-  events = events.map(event => {
-    return event.filter(e => e.type !== 'sperateEvent');
-  });
-  return events;
+  return groupEvent(instructions);
 };
 
 export { Scanner, Parser };

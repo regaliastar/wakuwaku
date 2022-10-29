@@ -16,7 +16,7 @@ type IfToken = {
 };
 type LabelValue = {
   label: string;
-  instructions: SecenEvent[];
+  instructions: Instruction[];
 };
 export interface ScriptScene {
   bg?: string;
@@ -60,7 +60,7 @@ export enum SecenEventTypeEnum {
 
 interface LabelSecenEvent {
   type: 'label';
-  value: SecenEvent[];
+  value: Instruction[];
 }
 
 export type SecenEventType = keyof typeof SecenEventTypeEnum;
@@ -71,4 +71,4 @@ export interface CommonSecenEvent {
   value: SecenEventValue;
 }
 
-export type SecenEvent = CommonSecenEvent | LabelSecenEvent;
+export type Instruction = CommonSecenEvent | LabelSecenEvent;

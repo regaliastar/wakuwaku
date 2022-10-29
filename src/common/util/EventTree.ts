@@ -1,8 +1,7 @@
 import _ from 'lodash';
 import { uid } from '~util/common';
-import { SecenEvent, IfValue } from '~interface/parser';
+import { Instruction, IfValue, CharactarSay } from '~interface/parser';
 
-type Instruction = SecenEvent;
 type Event = Instruction[];
 enum NodeType {
   'if',
@@ -12,7 +11,7 @@ enum NodeType {
   'root',
 }
 
-interface NextEventOptions {
+export interface NextEventParams {
   label: string;
 }
 
@@ -20,7 +19,7 @@ export interface Node {
   value: Event;
   father?: Node;
   children: Node[];
-  hash?: string;
+  hash: string;
   NodeType?: keyof typeof NodeType;
 }
 
@@ -33,6 +32,10 @@ class EventTree {
   };
   tail: Node = this.root;
   current: Node = this.root;
+
+  init() {
+    this.current = this.root;
+  }
 
   show() {
     console.log('============= show ===============');
@@ -71,7 +74,13 @@ class EventTree {
       item.NodeType = 'jump';
     }
     // 如果当前节点是label，接入该label的父节点if
-    if (child.length === 1 && child[0].type === 'label' && !_.isString(child[0].value) && 'label' in child[0].value) {
+    if (
+      child.length === 1 &&
+      child[0].type === 'label' &&
+      !_.isString(child[0].value) &&
+      'label' in child[0].value &&
+      'instructions' in child[0].value
+    ) {
       const label = child[0].value.label;
       let pointer = this.tail;
       while (pointer.father) {
@@ -104,38 +113,97 @@ class EventTree {
     return this.tail;
   }
 
-  getChildByHash(hash: string) {
-    if (!this.tail.children) return null;
-    return this.tail.children.find(v => v.hash === hash);
+  getCurrentHash(): string {
+    return this.current.hash;
   }
 
-  getNextEvent(options?: NextEventOptions): Event | null {
+  getHistory(): CharactarSay[] {
+    const hash = this.current.hash;
+    if (hash === this.root.hash) return [];
+    let pointer: Node = _.cloneDeep(this.root);
+    const res: CharactarSay[] = [];
+    while (pointer && pointer.hash !== hash) {
+      if (pointer.children) {
+        pointer.children.forEach(n => {
+          if (n.hash === hash) {
+            return res;
+          }
+          const event = n.value.filter(inst => inst.type === 'aside' || inst.type === 'say' || inst.type === 'if');
+          event.forEach(inst => {
+            if (inst.type === 'if' && _.isArray(inst.value)) {
+              inst.value.forEach(item => {
+                if (_.isString(item)) return;
+                res.push({
+                  name: '',
+                  text: '> ' + item.text,
+                });
+              });
+              res.push({
+                name: '',
+                text: '...',
+              });
+            }
+            if (inst.type === 'aside') {
+              res.push({
+                name: '',
+                text: inst.value as string,
+              });
+            }
+            if (inst.type === 'say' && !_.isString(inst.value) && 'name' in inst.value && 'text' in inst.value) {
+              res.push(inst.value);
+            }
+          });
+        });
+      }
+      pointer = pointer.children[0];
+    }
+    return res;
+  }
+
+  gotoByHash(hash: string): Node {
+    this.current = this.root;
+    let res: Node = this.current;
+    while (this.current) {
+      if (this.current.children) {
+        this.current.children.forEach(n => {
+          if (n.hash === hash) {
+            res = n;
+            return this.current;
+          }
+        });
+      }
+      this.current = this.current.children[0];
+    }
+    this.current = res;
+    return res;
+  }
+
+  getNextNode(params?: NextEventParams): Node | null {
     if (this.current.children.length === 0) return null;
     if (this.current.children.length === 1) {
       const res = this.current.children[0];
       this.current = this.current.children[0];
-      return res.value;
+      return res;
     }
-    if (options?.label) {
+    if (params?.label) {
       const node = this.current.children.find(node => {
         if (
           node.value[0].type === 'label' &&
           !_.isString(node.value[0].value) &&
           'label' in node.value[0].value &&
-          node.value[0].value.label === options?.label
+          node.value[0].value.label === params?.label
         ) {
           return true;
         }
         return false;
       });
       if (node === undefined) {
-        throw new Error(`找不到label: ${options.label}`);
+        throw new Error(`找不到label: ${params.label}`);
       }
-      const res = node.value;
       this.current = this.current.children[0];
-      return res;
+      return node;
     }
-    throw new Error(`找不到事件 ${options}, current: ${this.current}`);
+    throw new Error(`找不到事件 ${JSON.stringify(params)}, current: ${JSON.stringify(this.current)}`);
   }
 }
 

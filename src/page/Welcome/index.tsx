@@ -5,6 +5,7 @@ import style from './index.module.less';
 import less from '~style/common.module.less';
 import { currentCharactarSay, currentBg, currentChangeCharactors } from '~store/content';
 import { step } from '~store/script';
+import EventTree from '~util/EventTree';
 
 const Welcome: FC = () => {
   const setCurCharactorSay = useSetRecoilState(currentCharactarSay);
@@ -21,6 +22,7 @@ const Welcome: FC = () => {
     });
     setCurBg('');
     setCurCharactor([]);
+    EventTree.init();
   };
 
   useEffect(() => {

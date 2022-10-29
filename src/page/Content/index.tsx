@@ -1,10 +1,10 @@
 import React, { FC, useCallback, useEffect, useRef } from 'react';
 import _ from 'lodash';
-// import { Spin } from 'antd';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import style from './index.module.less';
 import WordPanel from './WordPanel';
 import Toolbar from './Toolbar';
+import SelectPanel from './SelectPanel';
 import less from '~style/common.module.less';
 import {
   typingDone,
@@ -16,9 +16,13 @@ import {
   currentChangeCharactors,
   toolbarVisiable,
   hasAllReadyInAuto,
+  lastLabel,
+  selectVisiable,
+  selectItem,
 } from '~store/content';
-import { step, currentEvent } from '~store/script';
-import { CharactarSay } from '~interface/parser';
+import { step, hash } from '~store/script';
+import { CharactarSay, IfValue, Instruction } from '~interface/parser';
+import EventTree, { NextEventParams } from '~util/EventTree';
 
 const ROOT_PATH = `../..`;
 
@@ -33,18 +37,34 @@ const Content: FC = () => {
   const [curCharactors, setCurCharactor] = useRecoilState<string[]>(currentChangeCharactors);
   const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   const [_step, setStep] = useRecoilState(step);
-  const curEvent = useRecoilValue(currentEvent);
+  const [, setHash] = useRecoilState(hash);
   const [_typingDone] = useRecoilState(typingDone);
+  const [_lastLabel, setLastLabel] = useRecoilState(lastLabel);
+  const [_selectVisiable, setSelectVisiable] = useRecoilState(selectVisiable);
+  const [_selectItem, setSelectItem] = useRecoilState<Array<IfValue>>(selectItem);
+
   // 可丢失状态
   const firstRenderRef = useRef(true);
 
-  const triggerNextEvent = async () => {
-    console.log('triggerNextEvent', _step, curEvent);
-    if (curEvent === null) {
+  const triggerNextEvent = async (params?: NextEventParams) => {
+    const node = EventTree.getNextNode(params);
+    if (node === null) return null;
+    setHash(node.hash);
+    let event = node?.value;
+    // console.log('triggerNextEvent', _hash, event);
+    if (event === null) {
       return null;
     }
+    if (
+      event.length === 1 &&
+      event[0].type === 'label' &&
+      !_.isString(event[0].value) &&
+      'instructions' in event[0].value
+    ) {
+      event = event[0].value.instructions as Instruction[];
+    }
     const res = await Promise.all(
-      curEvent.map(instruction => {
+      event.map(instruction => {
         return new Promise<void>(resolve => {
           switch (instruction.type) {
             case 'say':
@@ -64,6 +84,10 @@ const Content: FC = () => {
             case 'bgChange':
               setCurBg(instruction.value as string);
               break;
+            case 'if':
+              setSelectVisiable(true);
+              setSelectItem(instruction.value as IfValue[]);
+              break;
             default:
               console.log(`unsolve type ${instruction}`);
           }
@@ -74,6 +98,13 @@ const Content: FC = () => {
     setStep(_step + 1);
     return res;
   };
+
+  useEffect(() => {
+    if (_selectItem.length > 0 && _lastLabel !== '') {
+      triggerNextEvent({ label: _lastLabel });
+      setLastLabel('');
+    }
+  }, [_lastLabel]);
 
   useEffect(() => {
     let autoInterval: NodeJS.Timeout | undefined;
@@ -110,9 +141,8 @@ const Content: FC = () => {
   }, []);
 
   const handleClick = async () => {
-    console.log('handleClick', _hasAllReady, _step);
+    if (_selectVisiable && _toolbarVisiable) return;
     if (_hasAllReady) {
-      // const res = await triggerNextEvent();
       const res = await debounceTrigger();
       if (res === null) {
         console.log('game over');
@@ -141,6 +171,13 @@ const Content: FC = () => {
   return (
     <div className={style.content} onClick={handleClick}>
       <Toolbar />
+      {_selectVisiable && (
+        <SelectPanel
+          onClick={() => {
+            setSelectVisiable(false);
+          }}
+        />
+      )}
       <div className={less.bg} style={{ backgroundImage: curBg && `url(${ROOT_PATH}/drama/bg/${curBg})` }}>
         <div className={style.charactor}>
           {curCharactors.map(name => (

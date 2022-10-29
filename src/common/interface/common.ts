@@ -12,6 +12,7 @@ export type SaveData = {
   id: string;
   step: number;
   date: string;
+  hash: string;
   meta?: string;
   currentCharactarSay?: CharactarSay;
   currentChangeCharactors?: string[];
