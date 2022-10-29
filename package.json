@@ -12,6 +12,7 @@
     "fix": "eslint --fix src",
     "start": "npm run build && electron ./dist/main.js",
     "prepare": "husky install",
+    "test-parser": "npx ts-node src/common/util/test.ts",
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
@@ -20,9 +21,13 @@
   },
   "devDependencies": {
     "@loadable/component": "^5.15.2",
+    "@svgr/webpack": "^6.5.0",
     "@types/glob": "^8.0.0",
     "@types/loadable__component": "^5.13.4",
     "@types/lodash": "^4.14.186",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "@types/react-router-dom": "^5.3.3",
     "@types/react-typist": "^2.0.3",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
@@ -46,16 +51,17 @@
     "stylelint-formatter-pretty": "^3.1.0",
     "stylelint-prettier": "^2.0.0",
     "ts-loader": "^9.4.1",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.0",
     "typescript": "^4.8.3",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "@types/react": "^18.0.21",
-    "@types/react-dom": "^18.0.6",
-    "@types/react-router-dom": "^5.3.3",
     "antd": "^4.23.6",
+    "dexie": "^3.2.2",
     "lodash": "^4.17.21",
+    "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.2",

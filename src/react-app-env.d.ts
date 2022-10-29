@@ -9,3 +9,8 @@ declare namespace NodeJS {
     BUILD_VERSION: string;
   }
 }
+
+declare module '*.svg' {
+  const content: string;
+  export default content;
+}

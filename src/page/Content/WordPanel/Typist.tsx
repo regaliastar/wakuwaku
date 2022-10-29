@@ -3,7 +3,7 @@ import TypistComponent from 'react-typist-component';
 
 interface TypistType {
   text: string;
-  stopTyping: boolean;
+  disabled: boolean;
   onTypingDone?: () => void;
   onTypingStart?: () => void;
 }
@@ -15,17 +15,17 @@ const Typist: FC<TypistType> = (params: TypistType) => {
 
   // 强制结束触发Done事件
   useEffect(() => {
-    if (params.stopTyping) {
+    if (params.disabled) {
       params.onTypingDone?.();
     }
-  }, [params.stopTyping]);
+  }, [params.disabled]);
   return (
     <TypistComponent
       restartKey={params.text}
       onTypingDone={() => {
         params.onTypingDone?.();
       }}
-      disabled={params.stopTyping}
+      disabled={params.disabled}
     >
       {params.text}
     </TypistComponent>

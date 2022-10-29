@@ -19,18 +19,22 @@ module.exports = {
       '~interface': path.resolve(__dirname, '..', './src', './common', './interface'),
       '~component': path.resolve(__dirname, '..', './src', './common', './component'),
       '~style': path.resolve(__dirname, '..', './src', './common', './style'),
+      '~statics': path.resolve(__dirname, '..', './statics'),
     },
   },
   module: {
     rules: [
       {
-        // 同时匹配 ts，tsx 后缀的 TypeScript 源码文件
         test: /\.tsx?$/,
         loader: 'ts-loader',
       },
       {
         test: /\.less$/,
         use: ['style-loader', 'css-loader', 'less-loader'],
+      },
+      {
+        test: /\.svg$/,
+        use: ['@svgr/webpack'],
       },
     ],
   },

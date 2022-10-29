@@ -15,7 +15,7 @@ function createWindow() {
       contextIsolation: false,
     },
   });
-  mainWindow.menuBarVisible = false;
+  // mainWindow.menuBarVisible = false;
   // 这里的 mainWindow 是打包后的路径 dist/main.js
   mainWindow.loadFile(path.join(__dirname, '../', './src', './entry', 'index.html'));
 

@@ -1,13 +1,16 @@
-import { Token, SecenEvent, CharactarSay } from '~interface/parser';
+import { Token, Instruction, CharactarSay } from '~interface/parser';
+import { groupEvent } from '~util/common';
 
 /**
  * 词法分析，分割词素，生成 Token 串
  * 要求剧本为 LL(1) 文法，First 集合交集必须为空
  */
 const Scanner = (text: string): Array<Token> => {
+  const LabelDict: string[] = [];
+
   const recognizeBg = (line: string): Token | false => {
-    if (line.substring(0, 3) === '>bg' && line.substring(0, 4) !== '>bgm') {
-      const arr = line.includes(':') ? line.split(':') : line.split('：');
+    if (line.substring(0, 3) === '/bg' && line.substring(0, 4) !== '/bgm') {
+      const arr = line.split(' ');
       if (arr.length !== 2) {
         return false;
       }
@@ -20,8 +23,8 @@ const Scanner = (text: string): Array<Token> => {
   };
 
   const recognizeBgm = (line: string): Token | false => {
-    if (line.substring(0, 4) === '>bgm') {
-      const arr = line.includes(':') ? line.split(':') : line.split('：');
+    if (line.substring(0, 4) === '/bgm') {
+      const arr = line.split(' ');
       if (arr.length !== 2) {
         return false;
       }
@@ -34,8 +37,8 @@ const Scanner = (text: string): Array<Token> => {
   };
 
   const recognizeVoice = (line: string): Token | false => {
-    if (line.substring(0, 6) === '>voice') {
-      const arr = line.includes(':') ? line.split(':') : line.split('：');
+    if (line.substring(0, 6) === '/voice') {
+      const arr = line.split(' ');
       if (arr.length !== 2) {
         return false;
       }
@@ -45,6 +48,34 @@ const Scanner = (text: string): Array<Token> => {
       };
     }
     return false;
+  };
+
+  const recognizeIf = (line: string): Token | false => {
+    if (line.substring(0, 3) === '/if') {
+      const arr = line.split(' ');
+      if (arr[0] !== '/if') return false;
+      const str = line.substring(3).trim();
+      const [text, label] = str.includes(':') ? str.split(':') : str.split('：');
+      LabelDict.push(label.trim());
+      return {
+        type: 'if',
+        value: {
+          text: text.trim(),
+          label: label.trim(),
+        },
+      };
+    }
+    return false;
+  };
+
+  const recognizeLabel = (line: string): Token | false => {
+    const str = line.replace(/:/g, '').trim();
+    const index = LabelDict.findIndex(l => l === str);
+    if (index === -1) return false;
+    return {
+      type: 'label',
+      value: str,
+    };
   };
 
   const recognizeAddCharactor = (line: string): Token[] | false => {
@@ -85,13 +116,13 @@ const Scanner = (text: string): Array<Token> => {
   const lines = text.replace(/\r/g, '').trim().split('\n');
   let tokens: Array<Token> = [];
   lines.forEach(_line => {
-    const line = _line.trim();
+    const line = _line.trim().replace(/\s{2,}/g, ' ');
     // filter
     if (line === '') return;
     if (line[0] === '/' && line[1] === '/') return;
 
-    if (line[0] === '>') {
-      const res = recognizeBg(line) || recognizeBgm(line) || recognizeVoice(line);
+    if (line[0] === '/') {
+      const res = recognizeBg(line) || recognizeBgm(line) || recognizeVoice(line) || recognizeIf(line);
       if (res) {
         tokens.push(res);
         return;
@@ -111,7 +142,11 @@ const Scanner = (text: string): Array<Token> => {
       });
       return;
     }
-
+    const labelRes = recognizeLabel(line);
+    if (labelRes !== false) {
+      tokens = tokens.concat(labelRes);
+      return;
+    }
     // 排除是指令的情况后，剩下的可能有：角色说话、旁白
     const sayRes = recognizeSay(line);
     if (sayRes !== false) {
@@ -124,6 +159,7 @@ const Scanner = (text: string): Array<Token> => {
       value: line,
     });
   });
+  // console.log('Scanner', tokens);
   return tokens;
 };
 
@@ -133,12 +169,11 @@ const Scanner = (text: string): Array<Token> => {
  * 后续还将对事件进行优化，比如在同一个事件内，切换 bg 只有最后一次生效...工作量好大，召唤爱莉希雅帮我优化！
  * 要求剧本遵循 LL(1) 文法
  */
-const Parser = (tokens: Token[]): SecenEvent[][] => {
-  // 在同一个事件中，只能存在一个不可组合指令。默认 say、aside 类型事件需要交互（点击）
-  const cannotCombindInstruction = ['say', 'sperateEvent', 'aside'];
-  const instructions: SecenEvent[] = [];
+const Parser = (tokens: Token[]): Instruction[][] => {
+  const instructions: Instruction[] = [];
   const EOF = '$';
   let current = -1;
+  const LabelDict: string[] = [];
   const getNextToken = (): typeof EOF | Token => {
     current += 1;
     if (current >= tokens.length) {
@@ -153,7 +188,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
   };
   let lookahead = getNextToken();
 
-  const matchAddCharactor = (curToken: Token): SecenEvent | false => {
+  const matchAddCharactor = (curToken: Token): Instruction | false => {
     const names: string[] = [];
     if (curToken.type === 'addCharactorName') {
       while (lookahead !== EOF && lookahead.type === 'addCharactorName') {
@@ -169,7 +204,7 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
     return false;
   };
 
-  const matchSay = (curToken: Token): SecenEvent | false => {
+  const matchSay = (curToken: Token): Instruction | false => {
     const lookahead = getNextToken();
     if (curToken.type === 'sayName' && lookahead !== EOF && lookahead.type === 'text') {
       return {
@@ -183,60 +218,161 @@ const Parser = (tokens: Token[]): SecenEvent[][] => {
     return false;
   };
 
+  const matchIf = (curToken: Token): Instruction | false => {
+    if (curToken.type === 'if') {
+      const cont = [];
+      while (lookahead !== EOF && lookahead.type === 'if') {
+        LabelDict.push(lookahead.value.label);
+        cont.push({ text: lookahead.value.text, label: lookahead.value.label });
+        lookahead = getNextToken();
+      }
+      goBack();
+      return {
+        type: 'if',
+        value: cont,
+      };
+    }
+    return false;
+  };
+
+  const matchLabel = (curToken: Token): Instruction | false => {
+    if (curToken.type === 'label') {
+      const startLabel = curToken.value as string;
+      const innerInst = [];
+      lookahead = getNextToken();
+      while (lookahead !== EOF && lookahead.type !== 'label') {
+        switch (lookahead.type) {
+          case 'bg':
+            innerInst.push({
+              type: 'bgChange',
+              value: lookahead.value,
+            });
+            break;
+          case 'bgm':
+            innerInst.push({
+              type: 'bgmChange',
+              value: lookahead.value,
+            });
+            break;
+          case 'voice':
+            innerInst.push({
+              type: 'voiceChange',
+              value: lookahead.value,
+            });
+            break;
+          case 'aside':
+            innerInst.push({
+              type: 'aside',
+              value: lookahead.value,
+            });
+            break;
+          case 'sperator':
+            innerInst.push({
+              type: 'sperateEvent',
+              value: lookahead.value,
+            });
+            break;
+          case 'addCharactorName': {
+            const res = matchAddCharactor(lookahead);
+            if (res !== false) {
+              innerInst.push(res);
+            }
+            break;
+          }
+          case 'sayName': {
+            const res = matchSay(lookahead);
+            if (res !== false) {
+              innerInst.push(res);
+            }
+            break;
+          }
+          default:
+        }
+        lookahead = getNextToken();
+      }
+      if (lookahead === EOF) {
+        throw new Error('不能以label作为脚本结尾');
+      }
+      if (lookahead.type === 'label' && lookahead.value !== startLabel) {
+        throw new Error(`label必须前后一致 ${startLabel} ${lookahead.value}`);
+      }
+      return {
+        type: 'label',
+        value: {
+          instructions: innerInst as Instruction[],
+          label: startLabel,
+        },
+      };
+    }
+    return false;
+  };
+
   while (lookahead !== EOF) {
-    if (lookahead.type === 'bg') {
-      instructions.push({
-        type: 'bgChange',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'bgm') {
-      instructions.push({
-        type: 'bgmChange',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'voice') {
-      instructions.push({
-        type: 'voiceChange',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'aside') {
-      instructions.push({
-        type: 'aside',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'sperator') {
-      instructions.push({
-        type: 'sperateEvent',
-        value: lookahead.value,
-      });
-    } else if (lookahead.type === 'addCharactorName') {
-      const res = matchAddCharactor(lookahead);
-      if (res !== false) {
-        instructions.push(res);
+    switch (lookahead.type) {
+      case 'bg':
+        instructions.push({
+          type: 'bgChange',
+          value: lookahead.value,
+        });
+        break;
+      case 'bgm':
+        instructions.push({
+          type: 'bgmChange',
+          value: lookahead.value,
+        });
+        break;
+      case 'voice':
+        instructions.push({
+          type: 'voiceChange',
+          value: lookahead.value,
+        });
+        break;
+      case 'aside':
+        instructions.push({
+          type: 'aside',
+          value: lookahead.value,
+        });
+        break;
+      case 'sperator':
+        instructions.push({
+          type: 'sperateEvent',
+          value: lookahead.value,
+        });
+        break;
+      case 'addCharactorName': {
+        const res = matchAddCharactor(lookahead);
+        if (res !== false) {
+          instructions.push(res);
+        }
+        break;
       }
-    } else if (lookahead.type === 'sayName') {
-      const res = matchSay(lookahead);
-      if (res !== false) {
-        instructions.push(res);
+      case 'sayName': {
+        const res = matchSay(lookahead);
+        if (res !== false) {
+          instructions.push(res);
+        }
+        break;
       }
+      case 'if': {
+        const res = matchIf(lookahead);
+        if (res !== false) {
+          instructions.push(res);
+        }
+        break;
+      }
+      case 'label': {
+        const res = matchLabel(lookahead);
+        if (res !== false) {
+          instructions.push(res);
+        }
+        break;
+      }
+      default:
     }
     lookahead = getNextToken();
   }
 
-  // 组合可并行指令生成事件
-  let events: SecenEvent[][] = [];
-  instructions.forEach(inst => {
-    if (events.length > 0 && events[events.length - 1].every(e => !cannotCombindInstruction.includes(e.type))) {
-      events[events.length - 1].push(inst);
-      return;
-    }
-    events.push([inst]);
-  });
-  events = events.map(event => {
-    return event.filter(e => e.type !== 'sperateEvent');
-  });
-
-  return events;
+  return groupEvent(instructions);
 };
 
 export { Scanner, Parser };

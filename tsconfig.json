@@ -12,6 +12,13 @@
     "allowJs": false,
     "importHelpers": true,
   },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "compilerOptions": {
+      "target": "es6",
+      "module": "CommonJS",
+    }
+  },
   "include": [
     "src/**/*"
   ],

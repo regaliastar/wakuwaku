@@ -1,6 +1,6 @@
 import { atom, selector } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
-import { CharactarSay } from '~interface/parser';
+import { CharactarSay, IfValue } from '~interface/parser';
 
 export const typingDone = atom({
   key: uuidv4(),
@@ -44,7 +44,37 @@ export const currentCharactarSay = atom({
   },
 });
 
+export const currentChangeCharactors = atom({
+  key: uuidv4(),
+  default: <Array<string>>[],
+});
+
+export const currentBg = atom({
+  key: uuidv4(),
+  default: '',
+});
+
 export const auto = atom({
   key: uuidv4(),
   default: false,
+});
+
+export const lastLabel = atom({
+  key: uuidv4(),
+  default: '',
+});
+
+export const selectVisiable = atom({
+  key: uuidv4(),
+  default: false,
+});
+
+export const selectItem = atom({
+  key: uuidv4(),
+  default: <Array<IfValue>>[],
+});
+
+export const bgm = atom({
+  key: uuidv4(),
+  default: '',
 });

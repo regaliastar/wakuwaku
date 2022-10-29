@@ -1,21 +1,23 @@
 import React, { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   EyeOutlined,
   CommentOutlined,
+  SaveOutlined,
   LoadingOutlined,
   Loading3QuartersOutlined,
   ExportOutlined,
 } from '@ant-design/icons';
 import { Modal } from 'antd';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState } from 'recoil';
 import style from './index.module.less';
 import { toolbarVisiable, auto } from '~store/content';
-import { history } from '~store/script';
+import EventTree from '~util/EventTree';
 
 const Toolbar: FC = () => {
   const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   const [_auto, setAuto] = useRecoilState(auto);
-  const _history = useRecoilValue(history);
+  const navigate = useNavigate();
 
   const confirmExit = () => {
     Modal.confirm({
@@ -24,19 +26,19 @@ const Toolbar: FC = () => {
       okText: '确认',
       cancelText: '取消',
       onOk: () => {
-        location.href = '';
+        navigate('/welcome');
       },
     });
   };
 
   const confirmHistory = () => {
-    console.log('getHistory', _history);
+    const history = EventTree.getHistory();
     Modal.info({
       title: '历史记录',
       width: 1000,
       content: (
         <div className={style.history}>
-          {_history.map(h => {
+          {history.map(h => {
             return <p key={h?.text + Math.random().toString()}>{h?.name ? `${h?.name}: ${h?.text}` : `${h?.text}`}</p>;
           })}
         </div>
@@ -70,6 +72,16 @@ const Toolbar: FC = () => {
         </div>
       </div>
       <div className={style.right}>
+        <div
+          className={style.item}
+          onClick={e => {
+            e.stopPropagation();
+            navigate('/save');
+          }}
+        >
+          <span>保存</span>
+          <SaveOutlined />
+        </div>
         <div
           className={style.item}
           onClick={e => {

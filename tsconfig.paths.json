@@ -8,6 +8,7 @@
       "~interface/*": ["src/common/interface/*"],
       "~component/*": ["src/common/component/*"],
       "~style/*": ["src/common/style/*"],
+      "~statics": ["statics"],
     }
   }
 }

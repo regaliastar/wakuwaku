@@ -1,10 +1,11 @@
-import React, { FC, useEffect, useState, useRef } from 'react';
+import React, { FC, useCallback, useEffect, useRef } from 'react';
 import _ from 'lodash';
-// import { Spin } from 'antd';
 import { useRecoilValue, useRecoilState } from 'recoil';
+import { useAudio } from 'react-use';
 import style from './index.module.less';
 import WordPanel from './WordPanel';
 import Toolbar from './Toolbar';
+import SelectPanel from './SelectPanel';
 import less from '~style/common.module.less';
 import {
   typingDone,
@@ -12,11 +13,18 @@ import {
   hasAllReady,
   auto,
   currentCharactarSay,
+  currentBg,
+  currentChangeCharactors,
   toolbarVisiable,
   hasAllReadyInAuto,
+  lastLabel,
+  selectVisiable,
+  selectItem,
+  bgm,
 } from '~store/content';
-import { step, currentEvent } from '~store/script';
-import { CharactarSay } from '~interface/parser';
+import { step, hash } from '~store/script';
+import { CharactarSay, IfValue, Instruction } from '~interface/parser';
+import EventTree, { NextEventParams } from '~util/EventTree';
 
 const ROOT_PATH = `../..`;
 
@@ -27,35 +35,71 @@ const Content: FC = () => {
   const _hasAllReady = useRecoilValue(hasAllReady);
   const _hasAllReadyInAuto = useRecoilValue(hasAllReadyInAuto);
   const [curCharactorSay, setCurCharactorSay] = useRecoilState(currentCharactarSay);
+  const [curBg, setCurBg] = useRecoilState(currentBg);
+  const [curCharactors, setCurCharactor] = useRecoilState<string[]>(currentChangeCharactors);
   const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   const [_step, setStep] = useRecoilState(step);
-  const _currentEvent = useRecoilValue(currentEvent);
-  const [_typingDone, setTypingDone] = useRecoilState(typingDone);
-  // 自身状态
-  const [changeCharactors, setChangeCharactor] = useState<string[]>([]);
-  const [bgImg, setBgImg] = useState('');
-  const firstRenderRef = useRef(true);
+  const [, setHash] = useRecoilState(hash);
+  const [_typingDone] = useRecoilState(typingDone);
+  const [_lastLabel, setLastLabel] = useRecoilState(lastLabel);
+  const [_selectVisiable, setSelectVisiable] = useRecoilState(selectVisiable);
+  const [_selectItem, setSelectItem] = useRecoilState<Array<IfValue>>(selectItem);
+  const [_bgm, setBgm] = useRecoilState<string>(bgm);
 
-  async function triggerNextEvent() {
-    console.log('triggerNextEvent', _step, _currentEvent);
-    if (_currentEvent === null) {
+  // 可丢失状态
+  const firstRenderRef = useRef(true);
+  const [audio, , controls] = useAudio({
+    src: `../../statics/sound/${_bgm}`,
+    autoPlay: true,
+  });
+
+  const triggerNextEvent = async (params?: NextEventParams) => {
+    const node = EventTree.getNextNode(params);
+    if (node === null) return null;
+    setHash(node.hash);
+    let event = node?.value;
+    // console.log('triggerNextEvent', _hash, event);
+    if (event === null) {
       return null;
     }
+    if (
+      event.length === 1 &&
+      event[0].type === 'label' &&
+      !_.isString(event[0].value) &&
+      'instructions' in event[0].value
+    ) {
+      event = event[0].value.instructions as Instruction[];
+    }
     const res = await Promise.all(
-      _currentEvent.map(instruction => {
+      event.map(instruction => {
         return new Promise<void>(resolve => {
-          if (instruction.type === 'say') {
-            setStopTyping(false);
-            setCurCharactorSay(instruction.value as CharactarSay);
-          } else if (instruction.type === 'aside') {
-            setCurCharactorSay({
-              name: '',
-              text: instruction.value as string,
-            });
-          } else if (instruction.type === 'charactorChange') {
-            setChangeCharactor(instruction.value as string[]);
-          } else if (instruction.type === 'bgChange') {
-            setBgImg(instruction.value as string);
+          switch (instruction.type) {
+            case 'say':
+              setStopTyping(false);
+              setCurCharactorSay(instruction.value as CharactarSay);
+              break;
+            case 'aside':
+              setStopTyping(false);
+              setCurCharactorSay({
+                name: '',
+                text: instruction.value as string,
+              });
+              break;
+            case 'charactorChange':
+              setCurCharactor(instruction.value as string[]);
+              break;
+            case 'bgChange':
+              setCurBg(instruction.value as string);
+              break;
+            case 'bgmChange':
+              setBgm(instruction.value as string);
+              break;
+            case 'if':
+              setSelectVisiable(true);
+              setSelectItem(instruction.value as IfValue[]);
+              break;
+            default:
+              console.log(`unsolve type ${instruction}`);
           }
           resolve();
         });
@@ -63,11 +107,21 @@ const Content: FC = () => {
     );
     setStep(_step + 1);
     return res;
-  }
+  };
+
+  useEffect(() => {
+    if (_selectItem.length > 0 && _lastLabel !== '') {
+      triggerNextEvent({ label: _lastLabel });
+      setLastLabel('');
+    }
+  }, [_lastLabel]);
 
   useEffect(() => {
     let autoInterval: NodeJS.Timeout | undefined;
     if (_auto) {
+      if (_hasAllReadyInAuto) {
+        triggerNextEvent();
+      }
       autoInterval = setInterval(async () => {
         if (!_auto) {
           return;
@@ -92,13 +146,15 @@ const Content: FC = () => {
       triggerNextEvent();
     }
     return () => {
-      setStep(0);
+      debounceTrigger.cancel();
+      controls.unmute();
     };
   }, []);
 
-  const handleClick = _.throttle(async () => {
+  const handleClick = async () => {
+    if (_selectVisiable && _toolbarVisiable) return;
     if (_hasAllReady) {
-      const res = await triggerNextEvent();
+      const res = await debounceTrigger();
       if (res === null) {
         console.log('game over');
       }
@@ -109,21 +165,34 @@ const Content: FC = () => {
       setToolbarVisiable(true);
       return;
     }
-    if (!_typingDone) {
-      setTypingDone(true);
+    if (_auto) {
+      setAuto(false);
       return;
     }
-    // 点击后必然要做的行为
-    setStopTyping(true);
-    setAuto(false);
-  }, 800);
+    if (!_typingDone) {
+      setStopTyping(true);
+      return;
+    }
+  };
+  const debounceTrigger = useCallback(
+    _.debounce(async () => await triggerNextEvent(), 200),
+    [_toolbarVisiable, _auto, _step, _typingDone],
+  );
 
   return (
     <div className={style.content} onClick={handleClick}>
+      {audio}
       <Toolbar />
-      <div className={less.bg} style={{ backgroundImage: bgImg && `url(${ROOT_PATH}/drama/bg/${bgImg})` }}>
+      {_selectVisiable && (
+        <SelectPanel
+          onClick={() => {
+            setSelectVisiable(false);
+          }}
+        />
+      )}
+      <div className={less.bg} style={{ backgroundImage: curBg && `url(${ROOT_PATH}/drama/bg/${curBg})` }}>
         <div className={style.charactor}>
-          {changeCharactors.map(name => (
+          {curCharactors.map(name => (
             <img
               key={name}
               className={curCharactorSay.name === name ? style.activeCharactorImg : style.charactorImg}

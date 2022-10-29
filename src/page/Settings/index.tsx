@@ -5,7 +5,6 @@ const Settings: FC = () => {
   return (
     <div>
       <Toolbar></Toolbar>
-      <div>Settings</div>
     </div>
   );
 };
