@@ -1,9 +1,10 @@
 import React, { FC, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useAudio } from 'react-use';
 import style from './index.module.less';
 import less from '~style/common.module.less';
-import { currentCharactarSay, currentBg, currentChangeCharactors } from '~store/content';
+import { currentCharactarSay, currentBg, currentChangeCharactors, selectVisiable, selectItem } from '~store/content';
 import { step } from '~store/script';
 import EventTree from '~util/EventTree';
 
@@ -12,7 +13,13 @@ const Welcome: FC = () => {
   const setCurBg = useSetRecoilState(currentBg);
   const setCurCharactor = useSetRecoilState<string[]>(currentChangeCharactors);
   const [_step, setStep] = useRecoilState(step);
+  const [, setSelectVisiable] = useRecoilState(selectVisiable);
+  const [, setSelectItem] = useRecoilState(selectItem);
   const [_continue, setContinue] = useState<boolean>(false);
+  const [audio, , controls] = useAudio({
+    src: '../../statics/sound/welcome.mp3',
+    autoPlay: true,
+  });
 
   const init = () => {
     setStep(0);
@@ -22,6 +29,8 @@ const Welcome: FC = () => {
     });
     setCurBg('');
     setCurCharactor([]);
+    setSelectVisiable(false);
+    setSelectItem([]);
     EventTree.init();
   };
 
@@ -29,10 +38,12 @@ const Welcome: FC = () => {
     if (_step !== 0) {
       setContinue(true);
     }
+    return () => controls.unmute();
   }, []);
 
   return (
     <div className={`${style.banner} ${less.bg}`}>
+      {audio}
       {_continue && <Link to="/content">继续游戏</Link>}
       <Link to="/content" onClick={() => init()}>
         新游戏

@@ -1,6 +1,7 @@
 import React, { FC, useCallback, useEffect, useRef } from 'react';
 import _ from 'lodash';
 import { useRecoilValue, useRecoilState } from 'recoil';
+import { useAudio } from 'react-use';
 import style from './index.module.less';
 import WordPanel from './WordPanel';
 import Toolbar from './Toolbar';
@@ -19,6 +20,7 @@ import {
   lastLabel,
   selectVisiable,
   selectItem,
+  bgm,
 } from '~store/content';
 import { step, hash } from '~store/script';
 import { CharactarSay, IfValue, Instruction } from '~interface/parser';
@@ -42,9 +44,14 @@ const Content: FC = () => {
   const [_lastLabel, setLastLabel] = useRecoilState(lastLabel);
   const [_selectVisiable, setSelectVisiable] = useRecoilState(selectVisiable);
   const [_selectItem, setSelectItem] = useRecoilState<Array<IfValue>>(selectItem);
+  const [_bgm, setBgm] = useRecoilState<string>(bgm);
 
   // 可丢失状态
   const firstRenderRef = useRef(true);
+  const [audio, , controls] = useAudio({
+    src: `../../statics/sound/${_bgm}`,
+    autoPlay: true,
+  });
 
   const triggerNextEvent = async (params?: NextEventParams) => {
     const node = EventTree.getNextNode(params);
@@ -83,6 +90,9 @@ const Content: FC = () => {
               break;
             case 'bgChange':
               setCurBg(instruction.value as string);
+              break;
+            case 'bgmChange':
+              setBgm(instruction.value as string);
               break;
             case 'if':
               setSelectVisiable(true);
@@ -137,6 +147,7 @@ const Content: FC = () => {
     }
     return () => {
       debounceTrigger.cancel();
+      controls.unmute();
     };
   }, []);
 
@@ -170,6 +181,7 @@ const Content: FC = () => {
 
   return (
     <div className={style.content} onClick={handleClick}>
+      {audio}
       <Toolbar />
       {_selectVisiable && (
         <SelectPanel

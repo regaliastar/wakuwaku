@@ -3,7 +3,7 @@ import { uid } from '~util/common';
 import { Instruction, IfValue, CharactarSay } from '~interface/parser';
 
 type Event = Instruction[];
-enum NodeType {
+enum NodeTypeEnum {
   'if',
   'label',
   'jump',
@@ -20,7 +20,7 @@ export interface Node {
   father?: Node;
   children: Node[];
   hash: string;
-  NodeType?: keyof typeof NodeType;
+  NodeType?: keyof typeof NodeTypeEnum;
 }
 
 class EventTree {

@@ -73,3 +73,8 @@ export const selectItem = atom({
   key: uuidv4(),
   default: <Array<IfValue>>[],
 });
+
+export const bgm = atom({
+  key: uuidv4(),
+  default: '',
+});

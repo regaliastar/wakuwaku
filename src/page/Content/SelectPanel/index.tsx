@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+import { Button } from 'antd';
 import { useRecoilState } from 'recoil';
 import style from './index.module.less';
 import { toolbarVisiable, lastLabel, selectItem } from '~store/content';
@@ -19,7 +20,10 @@ const SelectPanel: FC<Params> = (params: Params) => {
     <div className={style.select}>
       {_selectItem.map(item => {
         return (
-          <button
+          <Button
+            className={style.button}
+            size="large"
+            block
             key={item.label}
             onClick={e => {
               e.stopPropagation();
@@ -27,7 +31,7 @@ const SelectPanel: FC<Params> = (params: Params) => {
             }}
           >
             {item.text}
-          </button>
+          </Button>
         );
       })}
     </div>
