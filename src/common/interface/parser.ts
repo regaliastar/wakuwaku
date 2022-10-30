@@ -14,7 +14,7 @@ type IfToken = {
   type: 'if';
   value: IfValue;
 };
-type LabelValue = {
+export type LabelValue = {
   label: string;
   instructions: Instruction[];
 };

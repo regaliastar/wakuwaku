@@ -371,7 +371,7 @@ const Parser = (tokens: Token[]): Instruction[][] => {
     }
     lookahead = getNextToken();
   }
-
+  console.log(1, groupEvent(instructions));
   return groupEvent(instructions);
 };
 

@@ -1,6 +1,7 @@
 import * as fs from 'fs';
+import { Node } from './EventTree';
 import { Scanner, Parser } from '~util/parser';
-import { Instruction } from '~interface/parser';
+import { Instruction, LabelValue } from '~interface/parser';
 
 export const loadScript = (filepath: string) => {
   if (!fs.existsSync(filepath)) {
@@ -34,4 +35,50 @@ export const groupEvent = (instructions: Instruction[]): Instruction[][] => {
     return event.filter(e => e.type !== 'sperateEvent');
   });
   return events;
+};
+
+/** 根据 instructions 生成首尾互联的 Node 节点 */
+export const generateNodeByinstructions = (value: LabelValue): Node[] => {
+  const instructions = value.instructions;
+  const events = groupEvent(instructions);
+  if (events.length < 2) {
+    throw new Error('生成首尾 Node 节点只允许事件数大于2');
+  }
+  const headNode: Node = {
+    value: [
+      {
+        type: 'label',
+        value: {
+          instructions: events[0],
+          label: value.label,
+        },
+      },
+    ],
+    hash: uid(),
+    NodeType: 'label',
+    children: [],
+  };
+  let tailNode: Node = headNode;
+  events.forEach((e, index) => {
+    if (index === 0) return;
+    const temp: Node = {
+      value: e,
+      father: tailNode,
+      hash: uid(),
+      NodeType: 'default',
+      children: [],
+    };
+    if (e.length === 1 && e[0].type === 'label') {
+      temp.NodeType = 'label';
+    }
+    if (e.length === 1 && e[0].type === 'if') {
+      temp.NodeType = 'if';
+    }
+    if (e.length === 1 && e[0].type === 'jump') {
+      temp.NodeType = 'jump';
+    }
+    tailNode.children.push(temp);
+    tailNode = temp;
+  });
+  return [headNode, tailNode];
 };

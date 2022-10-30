@@ -55,10 +55,10 @@ const Content: FC = () => {
 
   const triggerNextEvent = async (params?: NextEventParams) => {
     const node = EventTree.getNextNode(params);
+    console.log('triggerNextEvent', node);
     if (node === null) return null;
     setHash(node.hash);
     let event = node?.value;
-    // console.log('triggerNextEvent', _hash, event);
     if (event === null) {
       return null;
     }

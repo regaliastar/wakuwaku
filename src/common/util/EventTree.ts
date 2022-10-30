@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { uid } from '~util/common';
+import { uid, groupEvent, generateNodeByinstructions } from '~util/common';
 import { Instruction, IfValue, CharactarSay } from '~interface/parser';
 
 type Event = Instruction[];
@@ -32,6 +32,7 @@ class EventTree {
   };
   tail: Node = this.root;
   current: Node = this.root;
+  lastLayer: Array<Node> = [this.root]; // 记录最底层的叶节点
 
   init() {
     this.current = this.root;
@@ -39,13 +40,16 @@ class EventTree {
 
   show() {
     console.log('============= show ===============');
-    let pointer: Node = _.cloneDeep(this.root);
-    while (pointer) {
-      if (pointer.children) {
-        pointer.children.forEach(n => console.dir(n));
+    const pointer: Node = _.cloneDeep(this.root);
+    function core(node: Node) {
+      console.dir(node);
+      if (node.children) {
+        node.children.forEach(n => {
+          core(n);
+        });
       }
-      pointer = pointer.children[0];
     }
+    core(pointer);
     console.log('============= show end ===============');
   }
 
@@ -73,7 +77,7 @@ class EventTree {
     if (child.length === 1 && child[0].type === 'jump') {
       item.NodeType = 'jump';
     }
-    // 如果当前节点是label，接入该label的父节点if
+    // 如果当前节点是label，接入该label上最近的父节点if
     if (
       child.length === 1 &&
       child[0].type === 'label' &&
@@ -93,9 +97,22 @@ class EventTree {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const labelCol = pointer.value[0].value.map((v: any) => v.label);
           if (labelCol.includes(label)) {
-            item.father = pointer;
-            pointer.children.push(item);
-            this.tail = item;
+            // 支持 label 包裹多个事件
+            const instructions = child[0].value.instructions;
+            const events = groupEvent(instructions);
+            // 如果 label 只包裹一个事件
+            if (events.length === 1) {
+              item.father = pointer;
+              pointer.children.push(item);
+              this.tail = item;
+              this.lastLayer.push(this.tail);
+              return this.tail;
+            }
+            const [headNode, tailNode] = generateNodeByinstructions(child[0].value);
+            headNode.father = pointer;
+            pointer.children.push(headNode);
+            this.tail = tailNode;
+            this.lastLayer.push(this.tail);
             return this.tail;
           }
         }
@@ -103,13 +120,13 @@ class EventTree {
       }
       throw new Error(`找不到if语句 ${JSON.stringify(child)}`);
     }
-    // 如果上一个节点是label且该节点为普通节点，默认if的子节点全是label
-    if (this.tail.NodeType === 'label') {
-      this.tail.father?.children.forEach(labelNode => labelNode.children.push(item));
-    } else {
-      this.tail.children?.push(item);
-    }
+    // 如果插入的节点不是label节点
+    this.lastLayer = this.lastLayer.filter(node => node.NodeType !== 'if');
+    this.lastLayer.forEach(node => {
+      node.children.push(item);
+    });
     this.tail = item;
+    this.lastLayer = [this.tail];
     return this.tail;
   }
 
@@ -117,6 +134,7 @@ class EventTree {
     return this.current.hash;
   }
 
+  // todo: 只push玩家刚刚看到的历史
   getHistory(): CharactarSay[] {
     const hash = this.current.hash;
     if (hash === this.root.hash) return [];
@@ -198,12 +216,14 @@ class EventTree {
         return false;
       });
       if (node === undefined) {
+        console.log(this.current);
         throw new Error(`找不到label: ${params.label}`);
       }
-      this.current = this.current.children[0];
+      this.current = node;
       return node;
     }
-    throw new Error(`找不到事件 ${JSON.stringify(params)}, current: ${JSON.stringify(this.current)}`);
+    console.log(this.current);
+    throw new Error(`找不到事件 ${JSON.stringify(params)}`);
   }
 }
 

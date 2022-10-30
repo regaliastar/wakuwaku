@@ -6,7 +6,6 @@ import { loadScript } from '~util/common';
 import EventTree from '~util/EventTree';
 
 EventTree.loadEvents(loadScript('drama/test.txt'));
-EventTree.show();
 location.hash = '';
 const container = document.getElementById('root');
 if (container) {
