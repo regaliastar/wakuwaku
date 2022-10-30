@@ -36,6 +36,30 @@ const Scanner = (text: string): Array<Token> => {
     return false;
   };
 
+  const recognizeExit = (line: string): Token | false => {
+    if (line === '/exit') {
+      return {
+        type: 'exit',
+        value: '',
+      };
+    }
+    return false;
+  };
+
+  const recognizeJump = (line: string): Token | false => {
+    if (line.substring(0, 5) === '/jump') {
+      const arr = line.split(' ');
+      if (arr.length !== 2) {
+        return false;
+      }
+      return {
+        type: 'jump',
+        value: arr[1].trim(),
+      };
+    }
+    return false;
+  };
+
   const recognizeVoice = (line: string): Token | false => {
     if (line.substring(0, 6) === '/voice') {
       const arr = line.split(' ');
@@ -122,7 +146,13 @@ const Scanner = (text: string): Array<Token> => {
     if (line[0] === '/' && line[1] === '/') return;
 
     if (line[0] === '/') {
-      const res = recognizeBg(line) || recognizeBgm(line) || recognizeVoice(line) || recognizeIf(line);
+      const res =
+        recognizeBg(line) ||
+        recognizeBgm(line) ||
+        recognizeVoice(line) ||
+        recognizeIf(line) ||
+        recognizeExit(line) ||
+        recognizeJump(line);
       if (res) {
         tokens.push(res);
         return;
@@ -159,7 +189,7 @@ const Scanner = (text: string): Array<Token> => {
       value: line,
     });
   });
-  // console.log('Scanner', tokens);
+  console.log('Scanner', tokens);
   return tokens;
 };
 
@@ -272,6 +302,18 @@ const Parser = (tokens: Token[]): Instruction[][] => {
               value: lookahead.value,
             });
             break;
+          case 'exit':
+            innerInst.push({
+              type: 'exit',
+              value: lookahead.value,
+            });
+            break;
+          case 'jump':
+            innerInst.push({
+              type: 'jump',
+              value: lookahead.value,
+            });
+            break;
           case 'addCharactorName': {
             const res = matchAddCharactor(lookahead);
             if (res !== false) {
@@ -339,6 +381,18 @@ const Parser = (tokens: Token[]): Instruction[][] => {
           value: lookahead.value,
         });
         break;
+      case 'exit':
+        instructions.push({
+          type: 'exit',
+          value: lookahead.value,
+        });
+        break;
+      case 'jump':
+        instructions.push({
+          type: 'jump',
+          value: lookahead.value,
+        });
+        break;
       case 'addCharactorName': {
         const res = matchAddCharactor(lookahead);
         if (res !== false) {
@@ -371,7 +425,7 @@ const Parser = (tokens: Token[]): Instruction[][] => {
     }
     lookahead = getNextToken();
   }
-
+  console.log('Parser', groupEvent(instructions));
   return groupEvent(instructions);
 };
 

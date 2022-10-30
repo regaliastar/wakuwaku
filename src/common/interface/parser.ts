@@ -14,7 +14,7 @@ type IfToken = {
   type: 'if';
   value: IfValue;
 };
-type LabelValue = {
+export type LabelValue = {
   label: string;
   instructions: Instruction[];
 };
@@ -35,6 +35,7 @@ enum tokenType {
   'aside', // 旁白
   'label',
   'jump',
+  'exit',
 }
 type TokenValue = string | CharactarSay | IfValue;
 export interface CommonToken {
@@ -56,6 +57,7 @@ export enum SecenEventTypeEnum {
   'if', // 选项
   'label', // 选项结果
   'jump', // 剧本跳转
+  'exit', // 退出游戏
 }
 
 interface LabelSecenEvent {

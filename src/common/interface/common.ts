@@ -10,6 +10,7 @@ export type ComponentPage = {
 
 export type SaveData = {
   id: string;
+  filename: string;
   step: number;
   date: string;
   hash: string;

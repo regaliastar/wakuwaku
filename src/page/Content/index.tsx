@@ -1,4 +1,5 @@
 import React, { FC, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { useAudio } from 'react-use';
@@ -22,9 +23,10 @@ import {
   selectItem,
   bgm,
 } from '~store/content';
-import { step, hash } from '~store/script';
+import { step, hash, filename } from '~store/script';
 import { CharactarSay, IfValue, Instruction } from '~interface/parser';
 import EventTree, { NextEventParams } from '~util/EventTree';
+import { scriptDir, charactorDir, bgDir } from '~store/global';
 
 const ROOT_PATH = `../..`;
 
@@ -40,6 +42,7 @@ const Content: FC = () => {
   const [_toolbarVisiable, setToolbarVisiable] = useRecoilState(toolbarVisiable);
   const [_step, setStep] = useRecoilState(step);
   const [, setHash] = useRecoilState(hash);
+  const [, setFilename] = useRecoilState(filename);
   const [_typingDone] = useRecoilState(typingDone);
   const [_lastLabel, setLastLabel] = useRecoilState(lastLabel);
   const [_selectVisiable, setSelectVisiable] = useRecoilState(selectVisiable);
@@ -48,6 +51,7 @@ const Content: FC = () => {
 
   // 可丢失状态
   const firstRenderRef = useRef(true);
+  const navigate = useNavigate();
   const [audio, , controls] = useAudio({
     src: `../../statics/sound/${_bgm}`,
     autoPlay: true,
@@ -55,10 +59,10 @@ const Content: FC = () => {
 
   const triggerNextEvent = async (params?: NextEventParams) => {
     const node = EventTree.getNextNode(params);
+    console.log('triggerNextEvent', node);
     if (node === null) return null;
     setHash(node.hash);
     let event = node?.value;
-    // console.log('triggerNextEvent', _hash, event);
     if (event === null) {
       return null;
     }
@@ -97,6 +101,13 @@ const Content: FC = () => {
             case 'if':
               setSelectVisiable(true);
               setSelectItem(instruction.value as IfValue[]);
+              break;
+            case 'exit':
+              navigate('/welcome');
+              break;
+            case 'jump':
+              setFilename(instruction.value as string);
+              EventTree.jump(`${scriptDir}/${instruction.value}`);
               break;
             default:
               console.log(`unsolve type ${instruction}`);
@@ -190,13 +201,13 @@ const Content: FC = () => {
           }}
         />
       )}
-      <div className={less.bg} style={{ backgroundImage: curBg && `url(${ROOT_PATH}/drama/bg/${curBg})` }}>
+      <div className={less.bg} style={{ backgroundImage: curBg && `url(${ROOT_PATH}/${bgDir}/${curBg})` }}>
         <div className={style.charactor}>
           {curCharactors.map(name => (
             <img
               key={name}
               className={curCharactorSay.name === name ? style.activeCharactorImg : style.charactorImg}
-              src={`${ROOT_PATH}/drama/charactor/${name}.png`}
+              src={`${ROOT_PATH}/${charactorDir}/${name}.png`}
             ></img>
           ))}
         </div>

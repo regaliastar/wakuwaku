@@ -5,8 +5,10 @@ import { useAudio } from 'react-use';
 import style from './index.module.less';
 import less from '~style/common.module.less';
 import { currentCharactarSay, currentBg, currentChangeCharactors, selectVisiable, selectItem } from '~store/content';
-import { step } from '~store/script';
+import { step, filename } from '~store/script';
 import EventTree from '~util/EventTree';
+import { scriptDir, scriptEntry } from '~store/global';
+import { loadScript } from '~util/common';
 
 const Welcome: FC = () => {
   const setCurCharactorSay = useSetRecoilState(currentCharactarSay);
@@ -15,6 +17,7 @@ const Welcome: FC = () => {
   const [_step, setStep] = useRecoilState(step);
   const [, setSelectVisiable] = useRecoilState(selectVisiable);
   const [, setSelectItem] = useRecoilState(selectItem);
+  const [_filename, setFilename] = useRecoilState(filename);
   const [_continue, setContinue] = useState<boolean>(false);
   const [audio, , controls] = useAudio({
     src: '../../statics/sound/welcome.mp3',
@@ -22,6 +25,10 @@ const Welcome: FC = () => {
   });
 
   const init = () => {
+    if (_filename !== scriptEntry) {
+      setFilename(scriptEntry);
+      EventTree.loadEvents(loadScript(`${scriptDir}/${scriptEntry}`));
+    }
     setStep(0);
     setCurCharactorSay({
       name: '',

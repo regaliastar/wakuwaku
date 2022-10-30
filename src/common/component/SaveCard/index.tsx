@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import { Card } from 'antd';
+import { bgDir } from '~store/global';
 
 const { Meta } = Card;
 
@@ -20,7 +21,7 @@ const SaveCard: FC<CardProps> = (props: CardProps) => {
       cover={
         <img
           style={{ width: '100%', height: 200 }}
-          src={props.img ? `../../drama/bg/${props.img}` : `../../statics/img/saveNoData.svg`}
+          src={props.img ? `../../${bgDir}/${props.img}` : `../../statics/img/saveNoData.svg`}
         />
       }
     >
