@@ -1,0 +1,12 @@
+# 剧本存放目录
+scriptDir:
+  drama
+# 剧本入口文件
+scriptEntry:
+  test.txt
+# 背景图片存放目录
+bgDir:
+  drama/bg
+# 人物图片存放目录
+charactorDir:
+  drama/charactor

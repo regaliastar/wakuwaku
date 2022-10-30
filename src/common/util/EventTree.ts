@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { uid, groupEvent, generateNodeByinstructions } from '~util/common';
+import { loadScript, uid, groupEvent, generateNodeByinstructions, assignNodeType, resetUid } from '~util/common';
 import { Instruction, IfValue, CharactarSay } from '~interface/parser';
 
 type Event = Instruction[];
@@ -7,6 +7,7 @@ enum NodeTypeEnum {
   'if',
   'label',
   'jump',
+  'exit',
   'default',
   'root',
 }
@@ -23,7 +24,7 @@ export interface Node {
   NodeType?: keyof typeof NodeTypeEnum;
 }
 
-class EventTree {
+export class EventTree {
   root: Node = {
     value: [],
     children: [],
@@ -36,6 +37,7 @@ class EventTree {
 
   init() {
     this.current = this.root;
+    this.lastLayer = [this.root];
   }
 
   show() {
@@ -54,29 +56,34 @@ class EventTree {
   }
 
   loadEvents(events: Event[]): EventTree {
+    resetUid();
+    this.root = {
+      value: [],
+      children: [],
+      NodeType: 'root',
+      hash: uid(),
+    };
+    this.init();
     events.forEach(event => {
       this.addChild(event);
     });
     return this;
   }
 
+  jump(filename: string) {
+    const events = loadScript(filename);
+    this.loadEvents(events);
+  }
+
   addChild(child: Event): Node {
-    const item: Node = {
+    let item: Node = {
       value: child,
       father: this.tail,
       hash: uid(),
       NodeType: 'default',
       children: [],
     };
-    if (child.length === 1 && child[0].type === 'label') {
-      item.NodeType = 'label';
-    }
-    if (child.length === 1 && child[0].type === 'if') {
-      item.NodeType = 'if';
-    }
-    if (child.length === 1 && child[0].type === 'jump') {
-      item.NodeType = 'jump';
-    }
+    item = assignNodeType(item);
     // 如果当前节点是label，接入该label上最近的父节点if
     if (
       child.length === 1 &&

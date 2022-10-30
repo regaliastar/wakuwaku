@@ -10,7 +10,9 @@ import Toolbar from '~component/Toolbar';
 import { SaveData } from '~interface/common';
 import { saveHelper } from '~store/db/dbSchema';
 import { currentCharactarSay, currentBg, currentChangeCharactors } from '~store/content';
-import { step, hash } from '~store/script';
+import { step, hash, filename } from '~store/script';
+import { loadScript } from '~util/common';
+import { scriptDir } from '~store/global';
 
 const rowAmount = 3;
 const columnAmount = 3;
@@ -29,6 +31,8 @@ const Save: FC = () => {
   const [curCharactors, setCurCharactor] = useRecoilState<string[]>(currentChangeCharactors);
   const [_step, setStep] = useRecoilState(step);
   const [_hash, setHash] = useRecoilState(hash);
+  const [_filename, setFilename] = useRecoilState(filename);
+
   const navigate = useNavigate();
   const [ingore, forceUpdate] = useReducer(x => x + 1, 0);
 
@@ -40,6 +44,7 @@ const Save: FC = () => {
       onOk: () => {
         saveHelper.put({
           id,
+          filename: _filename,
           hash: _hash,
           step: _step,
           date: moment().format('llll'),
@@ -59,6 +64,7 @@ const Save: FC = () => {
       onOk: async () => {
         saveHelper.add({
           id,
+          filename: _filename,
           hash: _hash,
           step: _step,
           date: moment().format('llll'),
@@ -80,6 +86,8 @@ const Save: FC = () => {
         if (res === false) {
           return;
         }
+        setFilename(res.filename);
+        EventTree.loadEvents(loadScript(`${scriptDir}/${res.filename}`));
         EventTree.gotoByHash(res.hash);
         setHash(res.hash);
         setStep(res.step);

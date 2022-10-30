@@ -19,9 +19,13 @@ export const uid = (): string => {
   return id.toString();
 };
 
+export const resetUid = () => {
+  id = -1;
+};
+
 /** 在同一个事件中，只能存在一个不可组合指令。默认 say、aside 类型事件需要交互（点击）*/
 export const groupEvent = (instructions: Instruction[]): Instruction[][] => {
-  const cannotCombindInstruction = ['say', 'sperateEvent', 'aside', 'if', 'label'];
+  const cannotCombindInstruction = ['say', 'sperateEvent', 'aside', 'if', 'label', 'jump', 'exit'];
   // 组合可并行指令生成事件
   let events: Instruction[][] = [];
   instructions.forEach(inst => {
@@ -61,24 +65,33 @@ export const generateNodeByinstructions = (value: LabelValue): Node[] => {
   let tailNode: Node = headNode;
   events.forEach((e, index) => {
     if (index === 0) return;
-    const temp: Node = {
+    let temp: Node = {
       value: e,
       father: tailNode,
       hash: uid(),
       NodeType: 'default',
       children: [],
     };
-    if (e.length === 1 && e[0].type === 'label') {
-      temp.NodeType = 'label';
-    }
-    if (e.length === 1 && e[0].type === 'if') {
-      temp.NodeType = 'if';
-    }
-    if (e.length === 1 && e[0].type === 'jump') {
-      temp.NodeType = 'jump';
-    }
+    temp = assignNodeType(temp);
     tailNode.children.push(temp);
     tailNode = temp;
   });
   return [headNode, tailNode];
+};
+
+export const assignNodeType = (node: Node): Node => {
+  const child = node.value;
+  if (child.length === 1 && child[0].type === 'label') {
+    node.NodeType = 'label';
+  }
+  if (child.length === 1 && child[0].type === 'if') {
+    node.NodeType = 'if';
+  }
+  if (child.length === 1 && child[0].type === 'jump') {
+    node.NodeType = 'jump';
+  }
+  if (child.length === 1 && child[0].type === 'exit') {
+    node.NodeType = 'exit';
+  }
+  return node;
 };
