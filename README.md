@@ -2,6 +2,8 @@
 
 <img src='./wakuwaku.png' width='50%'/>
 
+基于兴趣的 galgame 引擎，可以编写自己的剧本，更强大的能力待后续更新...
+
 ## 项目研发
 
 ### 本地研发
@@ -26,22 +28,3 @@ npm i
 ```bash
 npm run start
 ```
-
-4. 监听文件修改，持续编译
-```bash
-npm run watch
-```
-
-### 目录结构
-
-- scripts --> 工程化支撑脚本，包括 webpack 配置等
-- shell --> 构建脚本
-- src --> 项目源码目录
-  - entry 项目的入口，包括整体布局、路由和页面菜单
-  - page 具体的页面模块
-  - common 公共组件
-    - interface 接口类型统一放在这个目录下
-    - component 业务组件
-    - style 全局统一的样式
-    - util 全局的工具类
-    - store 存储
